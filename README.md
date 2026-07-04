@@ -1,4 +1,4 @@
-# 🎵 Folk Analytics — Streaming Intelligence Agent
+# Folk Analytics — Streaming Intelligence Agent
 
 **Autor:** Armando Molina  
 **Institución:** Universidad Politécnica de Yucatán (UPY)  
@@ -21,7 +21,7 @@ Folk Analytics is a console-based data analysis agent that simulates the retriev
 
 ## Why it exists
 
-Independent and emerging artists — especially those from underrepresented regions or genres — rarely have access to the analytics tools major labels use. Folk Analytics democratizes that access: no account, no subscription, no third-party dashboard. Just an artist name and a report.
+Independent and emerging artists — especially those from underrepresented regions or genres rarely have access to the analytics tools major labels use. Folk Analytics democratizes that access: no account, no subscription, no third-party dashboard. Just an artist name and a report.
 
 ## Agent alignment
 
