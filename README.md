@@ -1,4 +1,4 @@
-# Folk Analytics — UPY Programming Project Q2 2026
+# 🎵 Folk Analytics — Streaming Intelligence Agent
 
 **Autor:** Armando Molina  
 **Institución:** Universidad Politécnica de Yucatán (UPY)  
@@ -6,24 +6,30 @@
 
 ---
 
-## ¿Qué es Folk Analytics?
+## What is Folk Analytics?
 
-Folk Analytics es un sistema de análisis de datos enfocado en la música folk. Su objetivo es recopilar, procesar y visualizar información sobre artistas, canciones, géneros y tendencias dentro de la escena folk, permitiendo explorar patrones y obtener insights sobre este género musical.
+Folk Analytics is a console-based data analysis agent that simulates the retrieval of music artist statistics from a streaming platform API. The user enters an artist name or ID, and the system autonomously handles the full pipeline: API query, data processing, and formatted report generation.
 
-## Descripción del repositorio
+## What it does
 
-Este repositorio contiene el código fuente, scripts de análisis, conjuntos de datos y documentación del proyecto Folk Analytics, desarrollado como proyecto de programación universitaria en la UPY.
+- Retrieves artist metrics: total plays, followers, monthly listeners, and recent activity
+- Calculates daily play averages over a configurable time period
+- Detects growth or decline trends based on historical data
+- Assigns unique IDs to each query session for traceability
+- Validates all user inputs with numeric menus and error handling
+- Outputs a clean, structured report directly in the console
 
-El proyecto incluye:
+## Why it exists
 
-- Recopilación y limpieza de datos musicales del género folk
-- Análisis estadístico de artistas, canciones y tendencias
-- Visualizaciones e informes generados a partir de los datos
-- Scripts y herramientas de procesamiento de datos
+Independent and emerging artists — especially those from underrepresented regions or genres — rarely have access to the analytics tools major labels use. Folk Analytics democratizes that access: no account, no subscription, no third-party dashboard. Just an artist name and a report.
 
-## Tecnologías
+## Agent alignment
 
-El proyecto está desarrollado con Python y las bibliotecas de análisis de datos más comunes (pandas, matplotlib, etc.).
+The system follows a classic agent loop: **perceive → process → act**. It perceives streaming data via simulated API calls, processes it autonomously (averages, trend detection, ranking), and acts by producing structured analytical output. Future versions can extend this to continuous monitoring with threshold-based alerts.
+
+## Tech
+
+Built in **PSeInt** (pseudocode) as an academic prototype. Designed to be ported to Python with real Spotify API integration.
 
 ---
 
