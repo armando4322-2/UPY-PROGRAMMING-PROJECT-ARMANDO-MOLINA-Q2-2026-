@@ -1,4 +1,4 @@
-# 🎵 Folk Analytics — UPY Programming Project Q2 2026
+# Folk Analytics — UPY Programming Project Q2 2026
 
 **Autor:** Armando Molina  
 **Institución:** Universidad Politécnica de Yucatán (UPY)  
