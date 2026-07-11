@@ -1,0 +1,53 @@
+2026-07-10 20:51:55 — [INFO] ══════════════════════════════════════════════════
+2026-07-10 20:51:55 — [INFO] Folk Analytics Agent — session started
+2026-07-10 20:51:55 — [INFO] Analysis window: 30 days | Queries: 7
+2026-07-10 20:51:55 — [INFO] --- New query | session=5FA3D768 | input='Aurora'
+2026-07-10 20:51:55 — [DEBUG] Input validated: "Aurora"
+2026-07-10 20:51:55 — [INFO] API query initiated for artist: "Aurora"
+2026-07-10 20:51:55 — [INFO] API response received for "Aurora" (ID: ART-001, followers: 2,400,000)
+2026-07-10 20:51:55 — [DEBUG] Play history generated: 30 days, base ~60,000 plays/day
+2026-07-10 20:51:55 — [WARNING] Trend detected: DECLINE (-6.6% over period)
+2026-07-10 20:51:55 — [INFO] Generating report for session 5FA3D768
+2026-07-10 20:51:55 — [INFO] Report output complete for session 5FA3D768
+2026-07-10 20:51:55 — [INFO] --- New query | session=E0EA9129 | input='Sufjan Stevens'
+2026-07-10 20:51:55 — [DEBUG] Input validated: "Sufjan Stevens"
+2026-07-10 20:51:55 — [INFO] API query initiated for artist: "Sufjan Stevens"
+2026-07-10 20:51:55 — [INFO] API response received for "Sufjan Stevens" (ID: ART-003, followers: 3,100,000)
+2026-07-10 20:51:55 — [DEBUG] Play history generated: 30 days, base ~75,000 plays/day
+2026-07-10 20:51:55 — [INFO] Trend detected: STABLE (+1.6% over period)
+2026-07-10 20:51:55 — [INFO] Generating report for session E0EA9129
+2026-07-10 20:51:55 — [INFO] Report output complete for session E0EA9129
+2026-07-10 20:51:55 — [INFO] --- New query | session=4C67983A | input='novo amor'
+2026-07-10 20:51:55 — [DEBUG] Input validated: "novo amor"
+2026-07-10 20:51:55 — [INFO] API query initiated for artist: "novo amor"
+2026-07-10 20:51:55 — [INFO] API response received for "novo amor" (ID: ART-004, followers: 1,050,000)
+2026-07-10 20:51:55 — [DEBUG] Play history generated: 30 days, base ~26,000 plays/day
+2026-07-10 20:51:55 — [INFO] Trend detected: STABLE (-1.5% over period)
+2026-07-10 20:51:55 — [INFO] Generating report for session 4C67983A
+2026-07-10 20:51:55 — [INFO] Report output complete for session 4C67983A
+2026-07-10 20:51:55 — [INFO] --- New query | session=648CDACB | input=''
+2026-07-10 20:51:55 — [WARNING] Empty artist name received — input rejected
+2026-07-10 20:51:55 — [INFO] --- New query | session=432C2B52 | input='Iron & Wine'
+2026-07-10 20:51:55 — [DEBUG] Input validated: "Iron & Wine"
+2026-07-10 20:51:55 — [INFO] API query initiated for artist: "Iron & Wine"
+2026-07-10 20:51:55 — [INFO] API response received for "Iron & Wine" (ID: ART-002, followers: 890,000)
+2026-07-10 20:51:55 — [DEBUG] Play history generated: 30 days, base ~20,666 plays/day
+2026-07-10 20:51:55 — [INFO] Trend detected: STABLE (-3.0% over period)
+2026-07-10 20:51:55 — [INFO] Generating report for session 432C2B52
+2026-07-10 20:51:55 — [INFO] Report output complete for session 432C2B52
+2026-07-10 20:51:55 — [INFO] --- New query | session=3FB85CE6 | input='UNKNOWN ARTIST'
+2026-07-10 20:51:55 — [DEBUG] Input validated: "UNKNOWN ARTIST"
+2026-07-10 20:51:55 — [INFO] API query initiated for artist: "UNKNOWN ARTIST"
+2026-07-10 20:51:55 — [WARNING] Artist "UNKNOWN ARTIST" has no streaming activity on record
+2026-07-10 20:51:55 — [INFO] API response received for "UNKNOWN ARTIST" (ID: ART-999, followers: 0)
+2026-07-10 20:51:55 — [DEBUG] Play history generated: 30 days, base ~0 plays/day
+2026-07-10 20:51:55 — [INFO] Trend detected: STABLE (+0.0% over period)
+2026-07-10 20:51:55 — [INFO] Generating report for session 3FB85CE6
+2026-07-10 20:51:55 — [INFO] Report output complete for session 3FB85CE6
+2026-07-10 20:51:55 — [INFO] --- New query | session=04A53235 | input='Bibio'
+2026-07-10 20:51:55 — [DEBUG] Input validated: "Bibio"
+2026-07-10 20:51:55 — [INFO] API query initiated for artist: "Bibio"
+2026-07-10 20:51:55 — [ERROR] Artist "Bibio" not found in streaming database
+2026-07-10 20:51:55 — [ERROR] Session 04A53235 aborted — artist not found
+2026-07-10 20:51:55 — [INFO] Folk Analytics Agent — session ended
+2026-07-10 20:51:55 — [INFO] ══════════════════════════════════════════════════
