@@ -29,8 +29,9 @@ The system follows a classic agent loop: **perceive → process → act**. It pe
 
 ## Tech
 
-Built in **PSeInt** (pseudocode) as an academic prototype. Designed to be ported to Python with real Spotify API integration.
+Built in **Python**. Uses the `logging` module for full audit trails, `uuid` for session tracking, and is designed for future integration with the real Spotify API.
 
 ---
 
 > Proyecto académico — UPY Q2 2026
+
