@@ -40,7 +40,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--source",
         choices=["simulated", "spotify"],
         default="simulated",
-        help="fuente de datos a utilizar (por defecto: simulated)",
+        help=(
+            "fuente de datos. 'simulated' es la via oficial del proyecto; "
+            "'spotify' es trabajo futuro y requiere credenciales en .env"
+        ),
     )
     parser.add_argument(
         "--metric",

@@ -1,4 +1,9 @@
-"""Cliente de datos simulados.
+"""Cliente de datos simulados: la fuente oficial del proyecto.
+
+Folk Analytics funciona sobre una API de streaming simulada. Es una decision
+de alcance deliberada, no un atajo: mantiene el proyecto reproducible, sin
+dependencias de red y sin gestion de credenciales, mientras ejercita el ciclo
+completo del agente.
 
 A diferencia de un `random` puro, este cliente genera una serie temporal
 *coherente*: para un artista y una fecha dados siempre devuelve el mismo

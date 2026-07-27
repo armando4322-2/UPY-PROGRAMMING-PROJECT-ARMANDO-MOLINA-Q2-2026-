@@ -1,56 +1,56 @@
 # Folk Analytics — Streaming Intelligence Agent
 
-**Autor:** Armando Karin Molina Marrufo
-**Institución:** Universidad Politécnica de Yucatán (UPY)
-**Período:** Q2 2026
+**Author:** Armando Karin Molina Marrufo
+**Institution:** Universidad Politécnica de Yucatán (UPY)
+**Term:** Q2 2026
 
 ---
 
-## Qué es Folk Analytics
+## What is Folk Analytics?
 
-Folk Analytics es un agente de análisis de datos que recupera métricas de artistas
-musicales, las acumula en un histórico persistente y detecta tendencias reales de
-crecimiento o declive. El usuario introduce el nombre de un artista y el sistema
-se encarga del resto: consulta la fuente, guarda la instantánea, analiza la serie
-temporal y emite un reporte con alertas.
+Folk Analytics is a console-based data analysis agent that retrieves music artist
+metrics, accumulates them into a persistent history, and detects real growth or
+decline trends. The user enters an artist name and the system handles the rest:
+it queries the data source, stores the snapshot, analyses the time series, and
+produces a structured report with alerts.
 
-## Por qué existe
+## Why it exists
 
-Los artistas independientes —sobre todo los de regiones o géneros poco
-representados— rara vez tienen acceso a las herramientas de analítica que usan
-los sellos grandes. Folk Analytics democratiza ese acceso: sin cuenta, sin
-suscripción y sin dashboards de terceros. Solo un nombre y un reporte.
+Independent and emerging artists — especially those from underrepresented regions
+or genres — rarely have access to the analytics tools major labels use. Folk
+Analytics democratizes that access: no account, no subscription, no third-party
+dashboard. Just an artist name and a report.
 
-## El ciclo del agente
+## Agent alignment
 
-El sistema implementa el ciclo clásico **percibir → procesar → actuar**:
+The system implements the classic agent loop **perceive → process → act**:
 
-| Fase | Qué hace | Dónde vive |
-|------|----------|------------|
-| **Percibir** | Valida la entrada y consulta la fuente de datos | `agent.py`, `api/` |
-| **Procesar** | Persiste la instantánea y analiza el histórico acumulado | `storage/`, `analytics/` |
-| **Actuar** | Genera métricas, tendencias, alertas y el reporte final | `analytics/alerts.py`, `reports/` |
+| Phase | What it does | Where it lives |
+|-------|--------------|----------------|
+| **Perceive** | Validates input and queries the data source | `agent.py`, `api/` |
+| **Process** | Persists the snapshot and analyses accumulated history | `storage/`, `analytics/` |
+| **Act** | Produces metrics, trends, alerts and the final report | `analytics/alerts.py`, `reports/` |
 
-La diferencia con un script de consulta puntual es la **memoria**: cada ejecución
-deja un rastro en disco que las siguientes aprovechan. Sin histórico no hay
-tendencia posible, solo ruido.
+What separates this from a one-off lookup script is **memory**. Every run leaves a
+trace on disk that later runs build on. Without history there is no trend to
+detect — only noise.
 
-## Qué hace
+## What it does
 
-- Recupera métricas de artistas: seguidores, oyentes mensuales y popularidad
-- Acumula un histórico persistente en JSON, sin duplicar instantáneas del mismo día
-- Detecta tendencias combinando **cambio porcentual** entre mitades de la ventana
-  y **regresión lineal** por mínimos cuadrados, reportando el R² como medida de confianza
-- Emite alertas por umbrales configurables: caídas pronunciadas, crecimientos
-  excepcionales y series demasiado ruidosas para ser fiables
-- Gestiona una *watchlist* de artistas bajo vigilancia
-- Valida toda entrada del usuario con menús numéricos y manejo de errores
-- Registra un rastro de auditoría completo en `logs/app.log`
+- Retrieves artist metrics: followers, monthly listeners and popularity
+- Accumulates a persistent JSON history, deduplicated per calendar day
+- Detects trends by combining **percentage change** between window halves with
+  **least-squares linear regression**, reporting R² as a confidence measure
+- Raises alerts against configurable thresholds: sharp drops, exceptional growth,
+  and series too noisy to be statistically reliable
+- Manages a *watchlist* of artists under continuous observation
+- Validates all user input through numeric menus with full error handling
+- Writes a complete audit trail to `logs/app.log`
 
-## Instalación
+## Installation
 
-Requiere **Python 3.10 o superior**. El núcleo funciona solo con la librería
-estándar; las dependencias externas son opcionales.
+Requires **Python 3.10 or newer**. The core runs on the standard library alone;
+external dependencies are optional.
 
 ```bash
 git clone https://github.com/armando4322-2/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-.git
@@ -58,19 +58,18 @@ cd UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-
 pip install -r requirements.txt
 ```
 
-## Uso
+## Usage
 
 ```bash
-python run.py                    # menú interactivo
-python run.py --demo             # demostración no interactiva
-python run.py -a "Novo Amor"     # análisis directo de un artista
+python run.py                    # interactive menu
+python run.py --demo             # non-interactive demonstration
+python run.py -a "Novo Amor"     # analyse a single artist and exit
 python run.py --metric popularity --verbose
-python run.py --source spotify   # usa la API real (requiere credenciales)
 ```
 
-También funciona como módulo: `python -m folk_analytics --demo`
+It also runs as a module: `python -m folk_analytics --demo`
 
-### Ejemplo de salida
+### Sample output
 
 ```
 ══════════════════════════════════════════════════════════════
@@ -94,60 +93,76 @@ También funciona como módulo: `python -m folk_analytics --demo`
 ══════════════════════════════════════════════════════════════
 ```
 
-## Fuentes de datos
+## The data source
 
-El proyecto programa contra una interfaz (`StreamingClient`), no contra una
-implementación concreta. Eso permite cambiar de fuente sin tocar el resto del código.
+The project programs against an interface (`StreamingClient`), never against a
+concrete implementation. Swapping data sources touches one line.
 
-### Cliente simulado (por defecto)
+### Simulated source (the project's data path)
 
-Genera series temporales **deterministas y coherentes**: para un artista y una
-fecha dados siempre devuelve el mismo valor, siguiendo el modelo
+Folk Analytics runs on a **simulated streaming API**. This is a deliberate scope
+decision, not a shortcut: it keeps the project reproducible, offline, and free of
+credential management, while still exercising the full agent pipeline.
+
+The simulation is not `random.random()` sprinkled over a report. It generates
+**deterministic, coherent time series** — for a given artist and date it always
+returns the same value, following the model
 
 ```
-valor(día) = base × (1 + tasa_crecimiento) ^ días_desde_hoy × ruido(día)
+value(day) = base × (1 + growth_rate) ^ days_from_today × noise(day)
 ```
 
-donde `ruido(día)` se deriva del identificador del artista y de la fecha del
-calendario. Esto es lo que hace que las tendencias detectadas signifiquen algo.
-No requiere red ni credenciales.
+where `noise(day)` is derived from the artist ID and the calendar date. Each
+artist in the catalog carries its own growth rate and volatility, so the resulting
+series behave like real ones: some climb, some decay, some are too noisy to read
+confidently. **This determinism is what makes the detected trends mean anything.**
 
-### Cliente de Spotify
+The simulated client also models real API behaviour: transient failures with
+exponential-backoff retries, artists absent from the catalog, and artists with no
+recorded activity.
 
-Usa el *Client Credentials Flow* de la API oficial. Para activarlo:
+### Real Spotify API (future work)
 
-1. Entra a [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard)
-2. **Create app** → Redirect URI: `http://localhost:8888/callback`
-3. Copia `.env.example` a `.env` y rellena tus credenciales
+`api/spotify.py` implements the real Client Credentials Flow and is included as
+documented future work. It is not the project's active data path — it exists to
+demonstrate that the `StreamingClient` abstraction holds against a genuine
+implementation, which is the architectural point the interface is there to prove.
 
-> **Nota honesta sobre los datos:** la API pública de Spotify **no expone oyentes
-> mensuales** —ese dato solo aparece en la interfaz web. Con esta fuente el
-> análisis se apoya en `followers` y en el índice `popularity` (0–100), que sí
-> están disponibles oficialmente. Documentarlo es preferible a inventar el número.
+Enabling it requires registering an app at
+[developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and
+copying `.env.example` to `.env`. Then: `python run.py --source spotify`
 
-## Estructura del proyecto
+> **An honest note on the data:** Spotify's public API does **not** expose monthly
+> listeners — that figure only appears in the artist's web page. With that source
+> the analysis leans on `followers` and the `popularity` index (0–100), which are
+> officially available. Documenting the limitation beats inventing the number.
+
+## Project structure
 
 ```
 folk_analytics/
-├── __main__.py          # punto de entrada y argumentos de línea de comandos
-├── agent.py             # el ciclo percibir → procesar → actuar
-├── cli.py               # menú interactivo y modo demostración
-├── config.py            # todos los parámetros ajustables
-├── logging_setup.py     # logging a archivo y consola, con fallback ASCII
+├── __main__.py          # entry point and command-line arguments
+├── agent.py             # the perceive → process → act cycle
+├── cli.py               # interactive menu and demonstration mode
+├── config.py            # every tunable parameter
+├── logging_setup.py     # file and console logging, with ASCII fallback
 ├── api/
-│   ├── base.py          # interfaz StreamingClient y jerarquía de excepciones
+│   ├── base.py          # StreamingClient interface and exception hierarchy
 │   ├── models.py        # ArtistData
-│   ├── simulated.py     # fuente sintética determinista
-│   └── spotify.py       # fuente real
+│   ├── simulated.py     # deterministic synthetic source
+│   └── spotify.py       # real source (future work)
 ├── analytics/
-│   ├── metrics.py       # estadística descriptiva
-│   ├── trends.py        # detección de tendencias
-│   └── alerts.py        # motor de alertas por umbrales
+│   ├── metrics.py       # descriptive statistics
+│   ├── trends.py        # trend detection
+│   └── alerts.py        # threshold-based alert engine
 ├── storage/
-│   └── json_store.py    # histórico y watchlist en JSON
+│   └── json_store.py    # history and watchlist persistence
 └── reports/
-    └── console.py       # renderizado del reporte
-tests/                   # 85 tests con pytest
+    └── console.py       # report rendering
+tests/                   # 85 pytest tests
+logs/
+├── development.log      # engineering diary (versioned)
+└── app.log              # runtime output (regenerated, not versioned)
 ```
 
 ## Tests
@@ -156,30 +171,36 @@ tests/                   # 85 tests con pytest
 python -m pytest tests/ -v
 ```
 
-La suite cubre validación de entrada, matemática de tendencias, persistencia,
-motor de alertas y flujo completo del agente, incluidos los casos límite:
-series constantes, división entre cero, ventanas de longitud impar, archivos
-de histórico corruptos y agotamiento de reintentos.
+The suite covers input validation, trend mathematics, persistence, the alert
+engine and the full agent flow, including edge cases: constant series, division by
+zero, odd-length windows, corrupt history files and retry exhaustion.
 
-## Configuración
+## Configuration
 
-Todos los parámetros ajustables viven en `folk_analytics/config.py`:
+Every tunable parameter lives in `folk_analytics/config.py`:
 
-| Parámetro | Por defecto | Qué controla |
-|-----------|-------------|--------------|
-| `ANALYSIS_WINDOW_DAYS` | 30 | Días que abarca el análisis |
-| `MIN_SNAPSHOTS_FOR_TREND` | 4 | Puntos mínimos para calcular tendencia |
-| `TREND_THRESHOLD_PCT` | 5.0 | Margen que se considera estable |
-| `ALERT_DROP_PCT` | −15.0 | Caída que dispara alerta crítica |
-| `ALERT_SPIKE_PCT` | 25.0 | Subida que dispara alerta informativa |
+| Parameter | Default | Controls |
+|-----------|---------|----------|
+| `ANALYSIS_WINDOW_DAYS` | 30 | Days covered by the analysis |
+| `MIN_SNAPSHOTS_FOR_TREND` | 4 | Minimum points before a trend is computed |
+| `TREND_THRESHOLD_PCT` | 5.0 | Band treated as stable |
+| `ALERT_DROP_PCT` | −15.0 | Drop that triggers a critical alert |
+| `ALERT_SPIKE_PCT` | 25.0 | Rise that triggers an informational alert |
 
-## Trabajo futuro
+## Development history
 
-- Exportación de reportes a CSV y HTML
-- Monitoreo programado con notificaciones
-- Comparación entre artistas y ranking por género
-- Migración del almacén a SQLite si el histórico crece
+`logs/development.log` is the project's engineering diary. It records every phase,
+every defect found and fixed, and the reasoning behind each design decision —
+including the audit that exposed the original trend-detection flaw.
+
+## Future work
+
+- CSV and HTML report export
+- Scheduled monitoring with notifications
+- Cross-artist comparison and genre ranking
+- Migrating the store to SQLite if the history grows large
+- Activating the real Spotify integration
 
 ---
 
-> Proyecto académico — Universidad Politécnica de Yucatán, Q2 2026
+> Academic project — Universidad Politécnica de Yucatán, Q2 2026

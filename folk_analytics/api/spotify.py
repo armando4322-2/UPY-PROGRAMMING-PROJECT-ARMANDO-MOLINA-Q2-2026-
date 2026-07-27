@@ -1,5 +1,12 @@
 """Cliente de la API real de Spotify (Client Credentials Flow).
 
+ESTADO: TRABAJO FUTURO
+----------------------
+La fuente activa del proyecto es `SimulatedClient`. Este modulo se conserva
+porque demuestra que la abstraccion `StreamingClient` aguanta frente a una
+implementacion real: ese es justamente el motivo de que la interfaz exista.
+Para activarlo hacen falta credenciales propias (ver `.env.example`).
+
 Requiere `requests` y credenciales en variables de entorno o en un
 archivo `.env` (ver `.env.example`).
 

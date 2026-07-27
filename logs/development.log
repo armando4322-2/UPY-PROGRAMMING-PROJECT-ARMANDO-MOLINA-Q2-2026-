@@ -1,0 +1,194 @@
+════════════════════════════════════════════════════════════════════════════════
+ FOLK ANALYTICS — DEVELOPMENT LOG
+ Author      : Armando Karin Molina Marrufo
+ Institution : Universidad Politecnica de Yucatan (UPY)
+ Term        : Q2 2026
+
+ This file is the project's engineering diary. Every session records what was
+ built, what was fixed and — most importantly — WHY. The runtime log produced
+ by the agent itself lives in logs/app.log and is NOT versioned, since it is
+ regenerated on every execution.
+════════════════════════════════════════════════════════════════════════════════
+
+
+────────────────────────────────────────────────────────────────────────────────
+ SESSION 01 — 2026-07-10 — Project bootstrap
+────────────────────────────────────────────────────────────────────────────────
+2026-07-10 18:30:01 — [INFO] Dev session started — Folk Analytics project setup
+2026-07-10 18:32:14 — [INFO] Repository created: UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-
+2026-07-10 18:33:45 — [INFO] README.md initialized with basic project description
+2026-07-10 18:41:02 — [INFO] README.md updated — added full Folk Analytics project description
+2026-07-10 18:41:03 — [INFO] Sections added: What it does, Why it exists, Agent alignment, Tech
+2026-07-10 18:55:27 — [INFO] folk_analytics.py created — core agent script
+2026-07-10 18:55:28 — [INFO] Agent pipeline implemented: perceive → process → act
+2026-07-10 18:56:10 — [INFO] Logging module configured — output: logs/app.log
+2026-07-10 18:56:11 — [INFO] Log levels in use: DEBUG, INFO, WARNING, ERROR
+2026-07-10 18:57:33 — [INFO] Script executed successfully — 7 artist queries processed
+2026-07-10 18:57:34 — [INFO] Sessions completed: 5 | Warnings: 2 | Errors: 2
+2026-07-10 18:58:01 — [INFO] /logs folder created and pushed to GitHub
+2026-07-10 19:10:44 — [INFO] README.md updated — tech stack changed from PSeInt to Python
+2026-07-10 19:10:45 — [INFO] Project is now a real Python implementation, not a pseudocode prototype
+2026-07-10 19:11:02 — [INFO] Dev session ended — all changes pushed to main
+2026-07-10 19:11:02 — [INFO] ══════════════════════════════════════════════════
+
+
+────────────────────────────────────────────────────────────────────────────────
+ SESSION 02 — 2026-07-27 — Architectural rebuild (v1.0.0 → v2.0.0)
+────────────────────────────────────────────────────────────────────────────────
+
+ AUDIT — what the code review found before writing anything
+ ---------------------------------------------------------
+2026-07-27 12:31:00 — [INFO] Dev session started — full project audit
+2026-07-27 12:31:20 — [INFO] Repository cloned and reviewed: 2 files, 8 commits
+2026-07-27 12:32:05 — [CRITICAL] Trend detection is measuring noise, not trend
+2026-07-27 12:32:06 — [CRITICAL] Cause: generate_play_history() rebuilds 30 days of
+                                 random data on every run. There is no persistence,
+                                 therefore no history, therefore no real trend.
+                                 Querying the same artist twice returns GROWING and
+                                 then DECLINING. This invalidates the core feature.
+2026-07-27 12:32:40 — [ERROR]    Dead retry logic: simulate_api_call() logs
+                                 "retrying..." but never retries anything
+2026-07-27 12:33:02 — [ERROR]    calculate_metrics() assumes HISTORY_DAYS is even;
+                                 an odd window silently misaligns both halves
+2026-07-27 12:33:25 — [WARNING]  Emoji output routed to console StreamHandler with
+                                 no encoding guard — UnicodeEncodeError on Windows cmd
+2026-07-27 12:33:48 — [WARNING]  README promises "numeric menus"; no menu exists.
+                                 The agent runs a hardcoded list of 7 queries
+2026-07-27 12:34:10 — [WARNING]  logs/app.log committed to version control
+2026-07-27 12:34:12 — [WARNING]  No .gitignore, no requirements.txt, no tests
+2026-07-27 12:34:30 — [INFO]     Audit complete: 3 blocking defects, 5 minor issues
+2026-07-27 12:35:00 — [INFO]     Roadmap agreed with author: 5 phases
+2026-07-27 12:35:30 — [INFO]     Decision — persistence format: JSON on disk
+                                 (chosen over SQLite for readability and ease of
+                                 explanation; the store is abstracted so migrating
+                                 later touches one module only)
+
+ PHASE 1 — Foundations
+ ---------------------
+2026-07-27 12:43:00 — [INFO] Phase 1 started — repository foundations
+2026-07-27 12:43:10 — [INFO] .gitignore created — logs, data, .env, __pycache__ excluded
+2026-07-27 12:43:20 — [INFO] requirements.txt created — core runs on stdlib only;
+                             requests and python-dotenv are optional extras
+2026-07-27 12:43:30 — [INFO] .env.example created — credential template, never committed
+2026-07-27 12:44:05 — [INFO] logs/app.log removed from version control (git rm --cached)
+2026-07-27 12:44:20 — [INFO] Package skeleton created: api, analytics, storage, reports, tests
+2026-07-27 12:44:40 — [INFO] Phase 1 complete
+
+ PHASE 2 — Modular refactor
+ --------------------------
+2026-07-27 12:45:00 — [INFO] Phase 2 started — breaking the monolith apart
+2026-07-27 12:45:30 — [INFO] config.py — every tunable parameter centralized;
+                             no other module defines business constants
+2026-07-27 12:46:00 — [INFO] logging_setup.py — file handler in UTF-8, console handler
+                             with automatic ASCII degradation
+2026-07-27 12:46:05 — [FIXED] UnicodeEncodeError on Windows console resolved:
+                              terminal capability is probed once at import time
+2026-07-27 12:47:00 — [INFO] api/base.py — StreamingClient abstract interface plus
+                             exception hierarchy (StreamingAPIError,
+                             ArtistNotFoundError)
+2026-07-27 12:47:10 — [INFO] Design rationale: the rest of the project programs
+                             against the interface, never against a concrete source.
+                             Swapping simulated data for a real API touches one line.
+2026-07-27 12:47:40 — [INFO] api/models.py — ArtistData as a frozen dataclass with
+                             JSON round-trip serialization
+2026-07-27 12:48:30 — [INFO] api/simulated.py — deterministic synthetic source
+2026-07-27 12:48:35 — [FIXED] Retry logic now actually retries, with exponential
+                              backoff, and raises StreamingAPIError once exhausted
+2026-07-27 12:49:30 — [INFO] api/spotify.py — real client via Client Credentials Flow
+2026-07-27 12:49:35 — [INFO] Documented honestly: Spotify's public API does NOT expose
+                             monthly listeners. That figure only exists in the web UI.
+                             The client reports 0 and the analysis leans on followers
+                             and popularity rather than inventing the number.
+2026-07-27 12:50:20 — [INFO] storage/json_store.py — SnapshotStore and WatchlistStore
+2026-07-27 12:50:40 — [INFO] analytics/trends.py, metrics.py, alerts.py written
+2026-07-27 12:50:45 — [FIXED] _split_halves() now handles odd-length windows by
+                              discarding the midpoint, guaranteeing equal halves
+2026-07-27 12:51:10 — [INFO] Trend engine upgraded: percentage change between window
+                             halves is now paired with least-squares linear regression;
+                             R-squared is reported as a confidence measure
+2026-07-27 12:51:50 — [INFO] reports/console.py — rendering isolated from logic,
+                             sparkline visualization added
+2026-07-27 12:52:30 — [INFO] agent.py — the perceive → process → act cycle, now
+                             orchestrating client, store, analytics and reporting
+2026-07-27 12:53:00 — [INFO] Phase 2 complete
+
+ PHASE 3 — Persistence (the fix that matters)
+ --------------------------------------------
+2026-07-27 12:53:30 — [INFO] Phase 3 started — giving the agent a memory
+2026-07-27 12:54:00 — [INFO] Snapshots persist to data/snapshots.json, sorted
+                             chronologically, deduplicated per calendar day
+2026-07-27 12:54:20 — [INFO] Corrupt history files are quarantined and the agent
+                             restarts clean instead of crashing
+2026-07-27 12:55:00 — [INFO] Simulated source made deterministic. Model:
+                             value(day) = base × (1 + growth_rate) ^ days_from_today
+                                          × noise(day)
+                             where noise(day) derives from the artist ID and the
+                             calendar date. Same artist + same date = same value.
+2026-07-27 12:55:30 — [INFO] History seeding added: on first query the agent
+                             reconstructs a 30-day backdated series so trends are
+                             computable immediately
+2026-07-27 12:55:40 — [INFO] With the real API no retroactive history exists, so the
+                             agent accumulates it from first run. That is the honest
+                             behaviour and it is documented as such.
+2026-07-27 12:56:30 — [FIXED] ROOT DEFECT RESOLVED — trends now computed against a
+                              real stored history. Verified: two consecutive runs
+                              produce identical figures.
+2026-07-27 12:57:00 — [INFO] Phase 3 complete
+
+ PHASE 4 — Autonomy
+ ------------------
+2026-07-27 12:57:30 — [INFO] Phase 4 started — interactive menu and alerting
+2026-07-27 12:58:00 — [INFO] cli.py — numeric menu with full input validation.
+                             The loop never dies from user input; every action is
+                             wrapped and unexpected errors are logged, not raised
+2026-07-27 12:58:30 — [INFO] Watchlist implemented — add, remove, list, batch analyse
+2026-07-27 12:59:00 — [INFO] Alert engine wired: critical drops, exceptional growth,
+                             missing activity, statistically unreliable series
+2026-07-27 12:59:30 — [INFO] __main__.py and run.py — argparse entry points
+                             (--demo, --artist, --source, --metric, --verbose, --quiet)
+2026-07-27 13:00:00 — [INFO] Demo mode covers 9 representative cases including all
+                             error paths, so behaviour is reviewable without typing
+2026-07-27 13:00:30 — [INFO] Catalog entry added: Hollow Pines (fictional artist).
+                             Rationale — exercising the CRITICAL collapse alert
+                             without attributing invented decline figures to a real
+                             musician
+2026-07-27 13:01:00 — [INFO] Phase 4 complete
+
+ PHASE 5 — Quality
+ -----------------
+2026-07-27 13:01:30 — [INFO] Phase 5 started — tests and documentation
+2026-07-27 13:03:00 — [INFO] 85 pytest tests written across 8 modules
+2026-07-27 13:03:10 — [INFO] Edge cases covered: constant series, division by zero,
+                             odd-length windows, corrupt history files, retry
+                             exhaustion, empty and oversized input, immutability
+2026-07-27 13:03:40 — [INFO] Regression test added specifically for the determinism
+                             defect, so the original bug cannot silently return
+2026-07-27 13:04:00 — [INFO] GitHub Actions workflow added — Python 3.10, 3.11, 3.12
+2026-07-27 13:04:30 — [INFO] README rewritten with architecture, usage and rationale
+2026-07-27 13:05:00 — [INFO] Test suite: 85 passed
+2026-07-27 13:05:30 — [INFO] Security check before push: no tokens or secrets staged
+2026-07-27 13:06:00 — [INFO] Pushed to main — commit c15df0b
+2026-07-27 13:06:30 — [INFO] Verified from a clean clone: 85 tests pass, demo exits 0,
+                             error paths return correct exit codes, Spotify source
+                             degrades gracefully without credentials
+2026-07-27 13:07:00 — [INFO] Phase 5 complete
+
+ FOLLOW-UP — author feedback
+ ---------------------------
+2026-07-27 13:20:00 — [INFO] Author decision: keep the simulated source as the
+                             project's official data path. Obtaining and maintaining
+                             real API credentials is out of scope for this term.
+2026-07-27 13:20:10 — [INFO] api/spotify.py retained as documented future work — it
+                             demonstrates that the StreamingClient abstraction holds
+                             against a real implementation, which is the architectural
+                             point the interface exists to prove
+2026-07-27 13:21:00 — [INFO] README translated back to English to match the author's
+                             original voice
+2026-07-27 13:22:00 — [INFO] Logging policy split into two files:
+                               logs/app.log         — runtime output, NOT versioned,
+                                                      regenerated on every execution
+                               logs/development.log — this file, versioned, the
+                                                      engineering record of the project
+2026-07-27 13:22:30 — [INFO] .gitignore updated to reflect the split
+2026-07-27 13:23:00 — [INFO] Session 02 ended
+────────────────────────────────────────────────────────────────────────────────

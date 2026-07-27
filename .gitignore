@@ -1,6 +1,10 @@
 # Logs
-logs/
-*.log
+# El log de ejecucion se regenera en cada corrida y no se versiona.
+logs/app.log
+logs/*.corrupt.json
+
+# La bitacora de desarrollo SI se versiona: documenta la evolucion del proyecto.
+!logs/development.log
 
 # Datos locales del agente
 data/
