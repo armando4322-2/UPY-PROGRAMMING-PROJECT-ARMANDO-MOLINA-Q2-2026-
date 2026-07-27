@@ -1,0 +1,9 @@
+# Folk Analytics — dependencias
+# El nucleo del proyecto corre con la libreria estandar de Python (3.10+).
+# Estas dependencias son opcionales y solo se necesitan para la API real.
+
+requests>=2.31.0        # cliente HTTP para la API de Spotify
+python-dotenv>=1.0.0    # carga de credenciales desde .env
+
+# Desarrollo
+pytest>=7.4.0
