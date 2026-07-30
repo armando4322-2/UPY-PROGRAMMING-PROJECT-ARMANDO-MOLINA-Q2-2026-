@@ -348,7 +348,7 @@
         Escala logarítmica: el rango va de miles a decenas de millones y en escala
         lineal los artistas pequeños quedarían invisibles.
       </p>
-      <div style="position:relative; height:520px"><canvas id="chart-rank"></canvas></div>
+      <div style="position:relative; height:900px"><canvas id="chart-rank"></canvas></div>
     </div>
 
     <div class="grid g2">
@@ -642,8 +642,16 @@ def web_overview():
     en la pagina, de modo que no hace falta ni una llamada de red para
     dibujarlo. Cada dia que pasa el panorama es mas rico sin tocar el codigo.
     """
+    import logging as _logging
+
     from folk_analytics.api.artists import load_catalog
     from folk_analytics.analytics.trends import analyze_artist_trend
+
+    # Con 50 artistas y poco historico, cada uno emitiria el mismo aviso de
+    # "datos insuficientes". El panel ya lo dice una vez, de forma mas clara.
+    trends_logger = _logging.getLogger("folk_analytics.analytics.trends")
+    previous_level = trends_logger.level
+    trends_logger.setLevel(_logging.ERROR)
 
     rows = []
     days = set()
@@ -672,7 +680,9 @@ def web_overview():
             "direction": trend.direction.value,
         })
 
+    trends_logger.setLevel(previous_level)
     rows.sort(key=lambda r: r["followers"], reverse=True)
+
     return json.dumps({
         "rows": rows,
         "days": len(days),
@@ -1279,7 +1289,8 @@ const byName = new Map();
 function renderArtists(){
   $("artists").innerHTML = CATALOG.map((a, i) => `
     <button class="card" data-i="${i}" title="Analizar ${esc(a.name)}">
-      <img src="${esc(a.image || "")}" alt="${esc(a.name)}" loading="lazy"
+      <img src="${esc(a.image || "")}" alt="${esc(a.name)}"
+           loading="lazy" decoding="async" width="300" height="300"
            onerror="this.style.visibility='hidden'">
       <div class="meta">
         <div class="cname">${esc(a.name)}</div>
