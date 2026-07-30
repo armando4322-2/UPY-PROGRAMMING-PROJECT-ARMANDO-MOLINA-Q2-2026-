@@ -6,8 +6,11 @@ logs/*.corrupt.json
 # La bitacora de desarrollo SI se versiona: documenta la evolucion del proyecto.
 !logs/development.log
 
-# Datos locales del agente
-data/
+# Almacen de instantaneas del agente: se regenera en cada ejecucion.
+# La barra inicial ancla la regla a la raiz del repositorio. Sin ella la regla
+# excluia tambien folk_analytics/data/, que SI debe versionarse porque contiene
+# el catalogo de artistas generado.
+/data/
 *.db
 
 # Credenciales
