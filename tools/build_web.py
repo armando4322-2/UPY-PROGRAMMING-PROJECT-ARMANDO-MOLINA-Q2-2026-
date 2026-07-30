@@ -26,9 +26,10 @@ OUTPUT = PROJECT_ROOT / "docs" / "index.html"
 
 PLACEHOLDER = "/*__PYTHON_SOURCES__*/"
 TESTS_DIR = PROJECT_ROOT / "tests"
+CATALOG = PROJECT_ROOT / "folk_analytics" / "data" / "catalog.json"
 
 # Modulos que no tienen sentido dentro del navegador.
-EXCLUDED = {"__main__.py", "spotify.py"}
+EXCLUDED = {"__main__.py", "spotify.py"}   # argparse y credenciales no aplican en el navegador
 
 
 def collect_sources() -> dict[str, str]:
@@ -40,6 +41,13 @@ def collect_sources() -> dict[str, str]:
             continue
         relative = path.relative_to(PROJECT_ROOT).as_posix()
         sources[relative] = path.read_text(encoding="utf-8")
+
+    # El catalogo no es codigo, pero el paquete lo necesita en el sistema de
+    # archivos virtual para poder leerlo igual que en consola.
+    if CATALOG.exists():
+        sources[CATALOG.relative_to(PROJECT_ROOT).as_posix()] = CATALOG.read_text(
+            encoding="utf-8"
+        )
 
     if not sources:
         raise SystemExit("No se encontro ningun modulo de folk_analytics")

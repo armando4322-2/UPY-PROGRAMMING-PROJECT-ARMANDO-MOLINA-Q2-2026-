@@ -114,14 +114,14 @@ Keeping both is the honest way to have real data *and* a demonstrable feature.
 
 | | Simulated | Deezer | Spotify |
 |---|---|---|---|
-| Verified working | yes | yes | **not yet** |
+| Role | trend demonstration | **metrics** | **artist photos** |
 | Real artists | no | **yes** | yes |
-| Credentials | none | **none** | required |
-| Works in the browser | yes | yes (JSONP) | no |
-| History available now | 30 days | accumulates | accumulates |
-| Followers | yes | yes | yes |
+| Credentials | none | **none** | build time only |
+| Works in the browser | yes | yes (JSONP) | n/a (baked in) |
+| History available now | 30 days | accumulates | — |
+| Followers | yes | **yes** | **blocked** |
 | Monthly listeners | yes | not published | not published |
-| Popularity | yes | not published | yes |
+| Popularity | yes | not published | **blocked** |
 | Albums | — | yes | — |
 
 ### Simulated source (default)
@@ -173,19 +173,29 @@ correct answer rather than a failure.
 
 ### Real Spotify API (optional, terminal only)
 
-> ⚠️ **Not verified against the live API.** This module is written but has never
-> been executed against Spotify, because the project has no credentials. The only
-> path actually exercised is its graceful fallback to the simulated source when
-> credentials are missing. The response shape it parses comes from Spotify's
-> documentation, not from a captured call — `tests/test_spotify.py` validates *our*
-> selection and conversion logic against that assumed shape, which is not the same
-> as proving the assumption holds.
->
-> **For verified real data with no credentials, use `--source deezer`.**
+Spotify is **not** an analysis source, and that is a finding rather than a choice.
+Running it against the live API with valid credentials (2026-07-30) showed that
+Spotify no longer exposes metrics to newly registered applications:
 
-`api/spotify.py` implements the Client Credentials Flow. It also demonstrates that
-the `StreamingClient` abstraction holds against a second real implementation, which
-is the architectural point the interface exists to prove.
+| Endpoint | Result |
+|---|---|
+| `GET /v1/search?type=artist` | `200` — simplified object: `id`, `name`, `images`, `uri`. No `followers`, `popularity` or `genres` |
+| `GET /v1/artists/{id}` | `200` — **the same keys**. Still no metrics |
+| `GET /v1/artists?ids={id}` | **`403 Forbidden`** |
+| `GET /v1/artists/{id}/top-tracks` | **`403 Forbidden`** |
+| `GET /v1/artists/{id}/albums` | `200` |
+
+Authentication works and search works; the metrics simply do not arrive. Using
+Spotify for analysis would report zero followers for every artist, which looks like
+a bug in the project when it is a platform restriction.
+
+So Spotify does the one thing it still does well: **official high-resolution artist
+photos and canonical IDs**. It is used only by `tools/build_catalog.py`, never during
+analysis, and the result is committed — so neither the terminal nor the web page
+needs Spotify credentials to display artwork.
+
+This was worth catching. The earlier version of `tests/test_spotify.py` asserted
+against a response shape taken from the documentation, passed green, and was wrong.
 
 It cannot be used from the public web page: a client secret cannot live in a
 page anyone can read. Enabling it in the terminal requires registering an app at
@@ -225,6 +235,25 @@ functions with `ast` so the figure shown in the header can never go stale.
 Two modules are excluded: `__main__.py` (argparse does not apply in a browser)
 and `spotify.py` (needs network and credentials).
 
+## Featured artists
+
+The project ships a catalog of 26 artists with identifiers already resolved, so they
+can be analysed with one click. It is generated offline and committed:
+
+```bash
+python tools/build_catalog.py           # resume-safe; skips what it already has
+python tools/build_catalog.py --force   # rebuild from scratch
+```
+
+Each source contributes what it is actually good at — Deezer the ID and live
+metrics, Spotify the official photo, MusicBrainz the country, type and genres that
+compose the description. **No description is hand-written**, so nothing false can be
+asserted about an artist: when a field is missing it simply does not appear.
+
+The catalog deliberately stores only slow-moving data. Follower counts are *not*
+cached — they would freeze at generation time and the project would present stale
+figures as current. They are fetched live on every analysis.
+
 ## Project structure
 
 ```
@@ -247,10 +276,11 @@ folk_analytics/
 │   └── json_store.py    # history and watchlist persistence
 └── reports/
     └── console.py       # report rendering
-tests/                   # 124 pytest tests
+tests/                   # 138 pytest tests
 tools/
 ├── build_web.py         # generates docs/index.html from the package
-└── web_template.html    # page template
+├── web_template.html    # page template
+└── build_catalog.py     # generates the featured-artist catalog
 docs/
 └── index.html           # generated — the live web interface
 logs/
@@ -264,7 +294,7 @@ logs/
 python -m pytest tests/ -v
 ```
 
-124 tests. The suite covers input validation, trend mathematics, persistence, the alert
+138 tests. The suite covers input validation, trend mathematics, persistence, the alert
 engine and the full agent flow, including edge cases: constant series, division by
 zero, odd-length windows, corrupt history files, retry exhaustion, and — for the real
 source — homonym disambiguation, API quota errors and malformed responses, all

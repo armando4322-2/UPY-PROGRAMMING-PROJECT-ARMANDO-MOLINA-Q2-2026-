@@ -38,13 +38,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--source",
-        choices=["simulated", "deezer", "spotify"],
+        choices=["simulated", "deezer"],
         default="simulated",
         help=(
-            "fuente de datos. 'simulated' trae historico completo y sirve para "
-            "demostrar la deteccion de tendencias; 'deezer' son datos reales sin "
-            "credenciales; 'spotify' son datos reales pero requiere credenciales "
-            "en .env (por defecto: simulated)"
+            "fuente de datos. 'simulated' trae 30 dias de historico y sirve para "
+            "demostrar la deteccion de tendencias; 'deezer' son datos reales de "
+            "artistas reales, sin credenciales (por defecto: simulated)"
         ),
     )
     parser.add_argument(
@@ -68,15 +67,6 @@ def build_client(source: str):
         from folk_analytics.api.deezer import DeezerClient
 
         return DeezerClient()
-
-    if source == "spotify":
-        from folk_analytics.api.spotify import SpotifyClient
-
-        try:
-            return SpotifyClient()
-        except StreamingAPIError as exc:
-            print(f"\n  ! No se pudo usar la API de Spotify: {exc}")
-            print("    Se continuara con datos simulados.\n")
 
     from folk_analytics.api.simulated import SimulatedClient
 

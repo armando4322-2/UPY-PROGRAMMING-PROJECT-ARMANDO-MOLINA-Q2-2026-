@@ -411,3 +411,82 @@
                              verified real data
 2026-07-30 05:33:00 — [INFO] BLOCKED — awaiting credentials to run the real check
 ────────────────────────────────────────────────────────────────────────────────
+
+
+────────────────────────────────────────────────────────────────────────────────
+ SESSION 06 — 2026-07-30 — Spotify verified, featured artists (v2.3.0)
+────────────────────────────────────────────────────────────────────────────────
+
+ THE SPOTIFY VERIFICATION — assumption disproved
+ -----------------------------------------------
+2026-07-30 08:10:00 — [INFO] Credentials supplied by the author. Ran the real check.
+2026-07-30 08:11:00 — [INFO] Authentication succeeded: Client Credentials token OK
+2026-07-30 08:12:00 — [CRITICAL] The assumed response shape was WRONG.
+                                 GET /v1/search?type=artist returns a SIMPLIFIED
+                                 object: external_urls, href, id, images, name,
+                                 type, uri. No followers, popularity or genres.
+2026-07-30 08:13:00 — [CRITICAL] GET /v1/artists/{id} returns 200 with the SAME
+                                 keys — the metrics are absent there too
+2026-07-30 08:13:30 — [CRITICAL] GET /v1/artists?ids=   -> 403 Forbidden
+                                 GET /v1/artists/{id}/top-tracks -> 403 Forbidden
+                                 GET /v1/artists/{id}/albums     -> 200
+2026-07-30 08:14:00 — [INFO] Conclusion: Spotify no longer exposes metrics to newly
+                             registered applications. Not a project defect, not the
+                             author's mistake — a platform restriction.
+2026-07-30 08:14:30 — [WARNING] This is exactly why the module was flagged unverified
+                                in session 05. tests/test_spotify.py had been written
+                                against the documented shape, passed green, and was
+                                asserting something false. A test passing on a wrong
+                                assumption is worse than no test: it manufactures
+                                confidence.
+2026-07-30 08:15:00 — [FIXED]   Tests rewritten against the OBSERVED shape, including
+                                one that asserts the metric fields are absent — if
+                                Spotify ever restores them, it fails and tells us.
+
+ DECISION — Spotify becomes an image provider
+ --------------------------------------------
+2026-07-30 08:17:00 — [INFO] Author chose: keep Spotify for official artwork only
+2026-07-30 08:17:30 — [INFO] SpotifyClient -> SpotifyImageProvider. It deliberately no
+                             longer implements StreamingClient: passing it off as an
+                             analysis source would return zero followers everywhere,
+                             looking like a project bug rather than a platform limit.
+2026-07-30 08:18:00 — [INFO] --source spotify removed from the CLI
+2026-07-30 08:18:30 — [INFO] Restriction documented in the module docstring and README
+                             with the actual endpoints and status codes, so the claim
+                             is checkable rather than asserted
+
+ FEATURED ARTIST CATALOG
+ -----------------------
+2026-07-30 08:22:00 — [INFO] Author supplied 27 artists via screenshots
+2026-07-30 08:23:00 — [WARNING] One entry, transcribed from the image as a Japanese
+                                name, resolved in no source — likely a misread
+                                character. Author chose to leave it out. 26 remain.
+2026-07-30 08:25:00 — [INFO] tools/build_catalog.py — each source does what it is
+                             good at: Deezer the ID, Spotify the photo, MusicBrainz
+                             the country, type and genres
+2026-07-30 08:26:00 — [INFO] Key decision: follower counts are NOT cached in the
+                             catalog. Caching them would freeze the numbers at
+                             generation time and the project would present stale
+                             figures as current. Only slow-moving data is stored.
+2026-07-30 08:27:00 — [INFO] Descriptions are composed entirely from MusicBrainz
+                             fields. Nothing is hand-written about any artist, so
+                             nothing false can be asserted; a missing field simply
+                             does not appear in the description.
+2026-07-30 08:28:00 — [WARNING] MusicBrainz allows one request per second, so a full
+                                build exceeds the available execution window
+2026-07-30 08:28:30 — [FIXED]   Builder made resumable with a time budget. Also
+                                protects against losing work if a run is interrupted.
+2026-07-30 08:32:00 — [INFO] Catalog built: 26 artists, 26 with photos, 20 with genres
+
+ WEB INTERFACE
+ -------------
+2026-07-30 08:36:00 — [INFO] Artist grid with official photos; one click analyses
+2026-07-30 08:37:00 — [INFO] Result header shows photo, description and genre tags
+2026-07-30 08:38:00 — [INFO] Autocomplete over the catalog, prefix matches ranked
+                             above substring matches, keyboard navigable
+2026-07-30 08:39:00 — [INFO] build_web.py now also injects catalog.json into the
+                             virtual filesystem — it is data, not code, but the
+                             package reads it the same way it does in the terminal
+2026-07-30 08:41:00 — [INFO] 14 tests added for the catalog and descriptions (138)
+2026-07-30 08:42:00 — [INFO] Session 06 ended
+────────────────────────────────────────────────────────────────────────────────

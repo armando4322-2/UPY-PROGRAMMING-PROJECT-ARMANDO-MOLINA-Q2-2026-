@@ -1,97 +1,94 @@
-"""Tests del cliente de Spotify.
+"""Tests del proveedor de identidad de Spotify.
 
-ALCANCE DE ESTOS TESTS
-----------------------
-Validan **nuestra** logica de seleccion y conversion sobre la forma de
-respuesta que documenta Spotify. No demuestran que esa forma sea correcta:
-los payloads de aqui estan construidos a partir de la documentacion, no
-capturados de una llamada real, porque el proyecto no dispone de
-credenciales. Hasta que alguien ejecute el cliente contra la API de verdad,
-esa suposicion sigue sin confirmar.
+Estos tests se reescribieron despues de ejecutar la API real por primera vez.
+La version anterior daba por supuesto que la busqueda devolvia `followers`,
+`popularity` y `genres`; pasaba en verde y estaba equivocada. La API real
+devuelve un objeto simplificado sin ninguno de esos campos.
 
-Se documenta asi a proposito: un test que pasa sobre una suposicion
-equivocada da una falsa sensacion de cobertura.
+Los payloads de aqui reproducen la forma REAL observada el 2026-07-30 con
+credenciales validas, no la que describe la documentacion.
 """
 
 import pytest
 
 from folk_analytics.api.base import ArtistNotFoundError, StreamingAPIError
-from folk_analytics.api.spotify import parse_search_payload, to_artist_data
+from folk_analytics.api.spotify import (
+    OBSERVED_ARTIST_KEYS,
+    parse_search_payload,
+)
 
 
-def artist(name, followers, popularity=50, artist_id="id0"):
-    """Objeto artista con la forma que documenta Spotify."""
-    return {
+def artist(name, artist_id="id0", with_image=True):
+    """Objeto artista tal y como lo devuelve Spotify de verdad.
+
+    Sin followers, sin popularity y sin genres: comprobado contra la API.
+    """
+    record = {
+        "external_urls": {"spotify": f"https://open.spotify.com/artist/{artist_id}"},
+        "href": f"https://api.spotify.com/v1/artists/{artist_id}",
         "id": artist_id,
+        "images": [
+            {"url": f"https://i.scdn.co/image/{artist_id}_640", "height": 640, "width": 640},
+            {"url": f"https://i.scdn.co/image/{artist_id}_160", "height": 160, "width": 160},
+        ] if with_image else [],
         "name": name,
-        "followers": {"href": None, "total": followers},
-        "popularity": popularity,
-        "genres": [],
+        "type": "artist",
+        "uri": f"spotify:artist:{artist_id}",
     }
+    return record
 
 
 def payload(*artists):
     return {"artists": {"href": "...", "items": list(artists), "total": len(artists)}}
 
 
-class TestToArtistData:
-    def test_convierte_los_campos(self):
-        data = to_artist_data(artist("AURORA", 4_200_000, 74, "0X2BHQ16UqDKA80USdJSFZ"))
-        assert data.artist_id == "0X2BHQ16UqDKA80USdJSFZ"
-        assert data.name == "AURORA"
-        assert data.followers == 4_200_000
-        assert data.popularity == 74
-        assert data.source == "spotify"
-
-    def test_declara_que_no_publica_oyentes_mensuales(self):
-        """Spotify solo expone esa cifra en la web del artista, no en la API.
-        Debe constar como no disponible, no como cero."""
-        data = to_artist_data(artist("AURORA", 100))
-        assert not data.is_available("monthly_listeners")
-        assert data.is_available("followers")
-        assert data.is_available("popularity")
-
-    def test_tolera_followers_ausente(self):
-        record = {"id": "x", "name": "Sin Datos", "popularity": 10}
-        assert to_artist_data(record).followers == 0
-
-    def test_tolera_followers_nulo(self):
-        record = {"id": "x", "name": "Sin Datos", "followers": None}
-        assert to_artist_data(record).followers == 0
+class TestFormaRealDeLaRespuesta:
+    def test_el_objeto_no_trae_metricas(self):
+        """Documenta el hallazgo: Spotify no expone estos campos a las apps
+        nuevas. Si algun dia volvieran, este test fallaria y avisaria."""
+        record = artist("Mon Laferte")
+        assert set(record.keys()) == set(OBSERVED_ARTIST_KEYS)
+        assert "followers" not in record
+        assert "popularity" not in record
+        assert "genres" not in record
 
 
 class TestParseSearchPayload:
-    def test_caso_simple(self):
-        data = parse_search_payload(payload(artist("Novo Amor", 480_000)), "Novo Amor")
-        assert data.name == "Novo Amor"
-        assert data.followers == 480_000
+    def test_devuelve_identidad_e_imagen(self):
+        result = parse_search_payload(
+            payload(artist("Mon Laferte", "4boI7bJtmB1L3b1cuL75Zr")), "Mon Laferte"
+        )
+        assert result["spotify_id"] == "4boI7bJtmB1L3b1cuL75Zr"
+        assert result["name"] == "Mon Laferte"
+        assert result["image"].endswith("_640")
+
+    def test_prefiere_la_imagen_de_mayor_resolucion(self):
+        """Las imagenes vienen ordenadas de mayor a menor; se toma la primera."""
+        result = parse_search_payload(payload(artist("Queen", "q1")), "Queen")
+        assert "_640" in result["image"]
+
+    def test_artista_sin_imagen(self):
+        result = parse_search_payload(
+            payload(artist("Sin Foto", "x", with_image=False)), "Sin Foto"
+        )
+        assert result["image"] is None
 
     def test_desambigua_homonimos(self):
-        """El mismo fallo que se corrigio en Deezer: quedarse con el primer
-        resultado puede devolver un artista distinto del buscado."""
-        data = parse_search_payload(
+        """Buscar AURORA devuelve varios candidatos y el correcto no siempre
+        es el primero."""
+        result = parse_search_payload(
             payload(
-                artist("Aurora Band", 1_200, artist_id="a"),
-                artist("Aurora Project", 800, artist_id="b"),
-                artist("AURORA", 4_200_000, artist_id="c"),
+                artist("Trio Aurora Hidalguense", "a"),
+                artist("Aurora Ardent", "b"),
+                artist("AURORA", "c"),
             ),
             "AURORA",
         )
-        assert data.artist_id == "c"
-
-    def test_coincidencia_exacta_gana_a_mas_seguidores(self):
-        data = parse_search_payload(
-            payload(
-                artist("Novo Amor Tribute Band", 90_000_000, artist_id="grande"),
-                artist("Novo Amor", 480_000, artist_id="correcto"),
-            ),
-            "Novo Amor",
-        )
-        assert data.artist_id == "correcto"
+        assert result["spotify_id"] == "c"
 
     def test_equipara_ampersand_y_and(self):
-        data = parse_search_payload(payload(artist("Iron & Wine", 900_000)), "Iron and Wine")
-        assert data.name == "Iron & Wine"
+        result = parse_search_payload(payload(artist("Iron & Wine", "iw")), "Iron and Wine")
+        assert result["spotify_id"] == "iw"
 
     def test_sin_resultados(self):
         with pytest.raises(ArtistNotFoundError):
@@ -99,7 +96,7 @@ class TestParseSearchPayload:
 
     def test_ningun_candidato_relacionado(self):
         with pytest.raises(ArtistNotFoundError):
-            parse_search_payload(payload(artist("Bad Bunny", 100)), "Sufjan Stevens")
+            parse_search_payload(payload(artist("Bad Bunny", "bb")), "Sufjan Stevens")
 
     def test_error_de_la_api_se_propaga(self):
         error = {"error": {"status": 401, "message": "Invalid access token"}}
@@ -115,16 +112,20 @@ class TestParseSearchPayload:
             parse_search_payload({}, "AURORA")
 
 
-class TestSpotifyClientSinCredenciales:
-    def test_falla_con_un_mensaje_accionable(self, monkeypatch):
-        """Sin credenciales debe explicar como conseguirlas, no reventar."""
-        from folk_analytics.api.spotify import SpotifyClient
+class TestCredenciales:
+    def test_sin_credenciales_da_un_mensaje_accionable(self, monkeypatch, tmp_path):
+        from folk_analytics import config
+        from folk_analytics.api.spotify import SpotifyImageProvider
 
         monkeypatch.setenv("SPOTIFY_CLIENT_ID", "")
         monkeypatch.setenv("SPOTIFY_CLIENT_SECRET", "")
-        monkeypatch.setattr(
-            "folk_analytics.api.spotify._load_dotenv_if_present", lambda: None
-        )
+        monkeypatch.setattr(config, "PROJECT_ROOT", tmp_path)  # sin .env
 
         with pytest.raises(StreamingAPIError, match="developer.spotify.com"):
-            SpotifyClient()
+            SpotifyImageProvider()
+
+    def test_acepta_credenciales_explicitas(self):
+        from folk_analytics.api.spotify import SpotifyImageProvider
+
+        provider = SpotifyImageProvider(client_id="abc", client_secret="def")
+        assert provider.client_id == "abc"
