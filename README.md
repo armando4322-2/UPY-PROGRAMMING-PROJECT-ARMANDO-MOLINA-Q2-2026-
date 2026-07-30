@@ -6,6 +6,9 @@
 
 [![tests](https://github.com/armando4322-2/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-/actions/workflows/tests.yml/badge.svg)](https://github.com/armando4322-2/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-/actions/workflows/tests.yml)
 
+📄 **[Reporte de estado del proyecto](REPORTE.md)** — resumen completo en español:
+decisiones, limitaciones y resultados de la auditoría.
+
 ### ▶ [Run it in your browser](https://armando4322-2.github.io/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-/)
 
 No installation required. The live page runs the real Python package in your
@@ -343,7 +346,7 @@ folk_analytics/
 │   └── json_store.py    # history and watchlist persistence
 └── reports/
     └── console.py       # report rendering
-tests/                   # 171 pytest tests
+tests/                   # 205 pytest tests
 tools/
 ├── build_web.py         # generates docs/index.html from the package
 ├── web_template.html    # page template
@@ -362,7 +365,7 @@ logs/
 python -m pytest tests/ -v
 ```
 
-171 tests. The suite covers input validation, trend mathematics, persistence, the alert
+205 tests. The suite covers input validation, trend mathematics, persistence, the alert
 engine and the full agent flow, including edge cases: constant series, division by
 zero, odd-length windows, corrupt history files, retry exhaustion, and — for the real
 source — homonym disambiguation, API quota errors and malformed responses, all

@@ -641,3 +641,57 @@
                              captured ranks for Caifanes and Taylor Swift
 2026-07-30 11:47:00 — [INFO] Session 08 ended
 ────────────────────────────────────────────────────────────────────────────────
+
+
+────────────────────────────────────────────────────────────────────────────────
+ SESSION 09 — 2026-07-30 — Full audit and status report
+────────────────────────────────────────────────────────────────────────────────
+
+ STALE HARDCODED FIGURE
+ ----------------------
+2026-07-30 12:00:00 — [WARNING] Author spotted it: the featured-artists blurb still
+                                said "26 artistas" after the catalog grew to 50
+2026-07-30 12:01:00 — [FIXED]   Filled from the actual catalog length, so it cannot
+                                go stale again. Same class of defect as the test
+                                counter in session 03 — hardcoded numbers rot.
+2026-07-30 12:03:00 — [FIXED]   Card click scrolled to the catalog field, which is
+                                hidden when the real source is selected, so the view
+                                landed somewhere arbitrary and the analysis looked
+                                like it had not run. Anchored to the whole panel.
+
+ FULL AUDIT — four real defects
+ ------------------------------
+2026-07-30 12:20:00 — [CRITICAL] `-a ""` hung the program. Checked for truthiness
+                                 instead of against None, so an empty string fell
+                                 through to the interactive menu and waited on the
+                                 keyboard. In an automated script: hung forever.
+2026-07-30 12:22:00 — [FIXED]    Returns exit code 2 like every other invalid input
+2026-07-30 12:26:00 — [WARNING]  normalize() turned apostrophes into spaces, so
+                                 "El De Las R's" and "El De Las Rs" did not match
+2026-07-30 12:27:00 — [FIXED]    Apostrophes are stripped with no gap; other
+                                 punctuation still becomes a space, because it
+                                 separates words. Found by writing the direct tests.
+2026-07-30 12:30:00 — [WARNING]  matching.py and logging_setup.py had no tests of
+                                 their own, only indirect coverage. matching.py is
+                                 precisely what decides whether the right artist gets
+                                 analysed: a failure there raises nothing, it just
+                                 returns another person's data.
+2026-07-30 12:34:00 — [FIXED]    33 tests added (205 total)
+2026-07-30 12:38:00 — [WARNING]  Dead imports across six modules
+2026-07-30 12:39:00 — [FIXED]    Genuine re-exports now declared in __all__, which
+                                 pyflakes honours, instead of sitting as noise
+                                 indistinguishable from an oversight
+2026-07-30 12:42:00 — [INFO] Also verified: no secrets in the repository, .env out of
+                             version control, no TODOs or dead code, catalog and
+                             history free of orphans and duplicates, docs/index.html
+                             in sync with the package
+
+ STATUS REPORT
+ -------------
+2026-07-30 12:50:00 — [INFO] REPORTE.md written: state, defensible decisions, known
+                             limitations and audit results, in Spanish
+2026-07-30 12:52:00 — [INFO] Every figure in the report is verified against the repo
+                             by a script rather than typed by hand — the same reason
+                             the hardcoded counts kept rotting
+2026-07-30 12:55:00 — [INFO] Session 09 ended
+────────────────────────────────────────────────────────────────────────────────
