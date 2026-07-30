@@ -456,6 +456,48 @@ from folk_analytics.storage.json_store import SnapshotStore
 
 # Un unico almacen compartido por todos los agentes. Si cada uno tuviera el
 # suyo, las copias en memoria divergirian del archivo en disco.
+def _seed_from_repository():
+    """Carga el historico recogido por el Action diario, si existe.
+
+    Es lo que hace que quien abra la pagina vea de entrada los datos reales
+    acumulados en el repositorio, en lugar de empezar de cero cada visita.
+    """
+    packaged = config.PROJECT_ROOT / "folk_analytics" / "data" / "history.json"
+
+    if not packaged.exists():
+        return 0
+
+    try:
+        repo = json.loads(packaged.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return 0
+
+    config.SNAPSHOT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if config.SNAPSHOT_FILE.exists():
+        try:
+            local = json.loads(config.SNAPSHOT_FILE.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            local = {}
+    else:
+        local = {}
+
+    # El historico local del visitante manda sobre el del repositorio para el
+    # mismo dia; el resto se fusiona.
+    for artist_id, snapshots in repo.items():
+        seen = {s["captured_at"][:10] for s in local.get(artist_id, [])}
+        merged = local.get(artist_id, []) + [
+            s for s in snapshots if s["captured_at"][:10] not in seen
+        ]
+        merged.sort(key=lambda s: s["captured_at"])
+        local[artist_id] = merged
+
+    config.SNAPSHOT_FILE.write_text(
+        json.dumps(local, ensure_ascii=False), encoding="utf-8"
+    )
+    return sum(len(v) for v in repo.values())
+
+
+_seeded = _seed_from_repository()
 _store = SnapshotStore()
 _agents = {}
 _log_pos = [0]
@@ -531,6 +573,12 @@ def web_bootstrap():
         "version": __version__,
         "python": sys.version.split()[0],
         "catalog": agent.catalog(),
+        "repo_points": _seeded,
+        "repo_days": len({
+            s.captured_at.date().isoformat()
+            for aid in _store.known_artists()
+            for s in _store.history(aid)
+        }),
         "config": {
             "window": config.ANALYSIS_WINDOW_DAYS,
             "min_points": config.MIN_SNAPSHOTS_FOR_TREND,

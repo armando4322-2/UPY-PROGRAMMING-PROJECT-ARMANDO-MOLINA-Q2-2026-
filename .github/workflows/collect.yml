@@ -1,0 +1,55 @@
+# Recoleccion diaria de metricas reales.
+#
+# Ninguna API publica devuelve el historico de seguidores de un artista, asi
+# que la unica forma honesta de tener una serie temporal es medirla dia a dia.
+# Este workflow lo hace solo: consulta Deezer, anade un punto al historico y
+# lo commitea. El historial de commits del repositorio queda como prueba de
+# que cada dato se recogio en su fecha y no se genero despues.
+
+name: collect
+
+on:
+  schedule:
+    # 06:00 UTC = medianoche en Yucatan (UTC-6). GitHub no garantiza la hora
+    # exacta en horas punta, y no importa: basta con un punto por dia.
+    - cron: "0 6 * * *"
+  workflow_dispatch:        # permite lanzarlo a mano desde la pestana Actions
+
+# Necesario para que el workflow pueda commitear el historico actualizado.
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Collect real metrics from Deezer
+        run: python tools/collect_snapshots.py
+
+      - name: Commit the new snapshot
+        run: |
+          git config user.name  "folk-analytics-agent"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet folk_analytics/data/history.json; then
+            echo "Sin cambios: ya habia una instantanea de hoy."
+            exit 0
+          fi
+
+          DAYS=$(python -c "import json,pathlib; d=json.loads(pathlib.Path('folk_analytics/data/history.json').read_text()); print(len({s['captured_at'][:10] for v in d.values() for s in v}))")
+          POINTS=$(python -c "import json,pathlib; d=json.loads(pathlib.Path('folk_analytics/data/history.json').read_text()); print(sum(len(v) for v in d.values()))")
+
+          git add folk_analytics/data/history.json
+          git commit -m "data: instantanea diaria ($DAYS dias, $POINTS puntos)"
+          git push
