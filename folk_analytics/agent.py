@@ -217,7 +217,7 @@ class FolkAnalyticsAgent:
         for days_ago in range(config.ANALYSIS_WINDOW_DAYS, 0, -1):
             past_day = today - timedelta(days=days_ago)
             try:
-                past = fetch_at(artist_name, past_day)
+                past = fetch_at(artist_name, past_day, quiet=True)
             except StreamingAPIError:
                 continue
             if self.store.add(past, save=False):

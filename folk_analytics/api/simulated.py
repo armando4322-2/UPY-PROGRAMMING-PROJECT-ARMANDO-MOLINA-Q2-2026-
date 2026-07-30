@@ -169,11 +169,18 @@ class SimulatedClient(StreamingClient):
         """Recupera las metricas de hoy para un artista, con reintentos."""
         return self.fetch_artist_at(artist_name, datetime.now(timezone.utc).date())
 
-    def fetch_artist_at(self, artist_name: str, target_day: date) -> ArtistData:
+    def fetch_artist_at(
+        self, artist_name: str, target_day: date, quiet: bool = False
+    ) -> ArtistData:
         """Igual que `fetch_artist` pero para una fecha arbitraria.
 
         Se usa para reconstruir historicos al arrancar el agente por
         primera vez.
+
+        Args:
+            quiet: baja a DEBUG el detalle por consulta. Durante la
+                reconstruccion de un historico se hacen decenas de
+                llamadas y registrarlas todas a INFO ahoga la salida.
         """
         key = artist_name.strip().lower()
         entry = ARTIST_DB.get(key)
@@ -183,7 +190,7 @@ class SimulatedClient(StreamingClient):
             raise ArtistNotFoundError(f"Artista no encontrado: {artist_name!r}")
 
         logger.debug("Consultando '%s' para la fecha %s", artist_name, target_day)
-        self._simulate_network(artist_name)
+        self._simulate_network(artist_name, quiet=quiet)
 
         followers, listeners = self._metrics_for_day(entry, target_day)
 
@@ -203,12 +210,13 @@ class SimulatedClient(StreamingClient):
             captured_at=captured,
         )
 
-        if not data.has_activity:
+        if not data.has_activity and not quiet:
             logger.warning(
                 "El artista '%s' no registra actividad de streaming", data.name
             )
 
-        logger.info(
+        log = logger.debug if quiet else logger.info
+        log(
             "Respuesta recibida para '%s' (ID: %s, seguidores: %s)",
             data.name,
             data.artist_id,
@@ -218,7 +226,7 @@ class SimulatedClient(StreamingClient):
 
     # -- Simulacion de red ----------------------------------------------------
 
-    def _simulate_network(self, artist_name: str) -> None:
+    def _simulate_network(self, artist_name: str, quiet: bool = False) -> None:
         """Simula fallos transitorios y reintenta de verdad.
 
         La version anterior del proyecto registraba 'reintentando...' pero
@@ -228,12 +236,12 @@ class SimulatedClient(StreamingClient):
         for attempt in range(1, config.API_MAX_RETRIES + 1):
             if self._rng.random() >= self.failure_rate:
                 if attempt > 1:
-                    logger.info(
+                    (logger.debug if quiet else logger.info)(
                         "Consulta de '%s' resuelta en el intento %d", artist_name, attempt
                     )
                 return
 
-            logger.warning(
+            (logger.debug if quiet else logger.warning)(
                 "Fallo transitorio consultando '%s' (intento %d de %d)",
                 artist_name,
                 attempt,
