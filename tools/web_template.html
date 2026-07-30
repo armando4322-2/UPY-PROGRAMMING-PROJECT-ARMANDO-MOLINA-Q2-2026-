@@ -309,6 +309,46 @@
 
 <section>
   <div class="wrap">
+    <h2>Panorama comparativo</h2>
+    <p class="sub" id="overview-sub">
+      Todos los artistas del catálogo, con los datos reales que el agente recolecta
+      automáticamente cada día.
+    </p>
+
+    <div class="grid g3" id="overview-kpis" style="margin-bottom:18px"></div>
+
+    <div class="panel" style="margin-bottom:16px">
+      <h3 style="margin-bottom:4px">Ranking por seguidores</h3>
+      <p class="sub" style="font-size:12.5px; margin-bottom:12px">
+        Escala logarítmica: el rango va de miles a decenas de millones y en escala
+        lineal los artistas pequeños quedarían invisibles.
+      </p>
+      <div style="position:relative; height:520px"><canvas id="chart-rank"></canvas></div>
+    </div>
+
+    <div class="grid g2">
+      <div class="panel">
+        <h3 style="margin-bottom:4px">Seguidores frente a álbumes</h3>
+        <p class="sub" style="font-size:12.5px; margin-bottom:12px">
+          Cada punto es un artista. Arriba a la izquierda: mucho público con obra breve.
+        </p>
+        <div style="position:relative; height:300px"><canvas id="chart-scatter"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-bottom:4px">Géneros del catálogo</h3>
+        <p class="sub" style="font-size:12.5px; margin-bottom:12px">
+          Etiquetas que publica MusicBrainz, agregadas sobre todo el catálogo.
+        </p>
+        <div style="position:relative; height:300px"><canvas id="chart-genres"></canvas></div>
+      </div>
+    </div>
+
+    <div class="note" id="overview-note"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
     <h2>Artistas destacados</h2>
     <p class="sub">
       26 artistas con identificador ya resuelto. Pulsa cualquiera para analizarlo con
@@ -565,6 +605,51 @@ def web_suggest(prefix):
     from folk_analytics.api.artists import suggest
 
     return json.dumps(suggest(prefix))
+
+
+def web_overview():
+    """Panorama comparativo de todo el catalogo.
+
+    Se construye con el historico que recolecta el Action diario, ya incluido
+    en la pagina, de modo que no hace falta ni una llamada de red para
+    dibujarlo. Cada dia que pasa el panorama es mas rico sin tocar el codigo.
+    """
+    from folk_analytics.api.artists import load_catalog
+    from folk_analytics.analytics.trends import analyze_artist_trend
+
+    rows = []
+    days = set()
+
+    for artist in load_catalog():
+        artist_id = f"DZ-{artist.deezer_id}" if artist.deezer_id else None
+        history = _store.history(artist_id) if artist_id else []
+        if not history:
+            continue
+
+        for snapshot in history:
+            days.add(snapshot.captured_at.date().isoformat())
+
+        latest = history[-1]
+        trend = analyze_artist_trend(history, "followers")
+
+        rows.append({
+            "name": artist.name,
+            "image": artist.image,
+            "country": artist.country,
+            "genres": list(artist.genres),
+            "followers": latest.followers,
+            "albums": latest.albums,
+            "points": len(history),
+            "change_pct": round(trend.change_pct, 1),
+            "direction": trend.direction.value,
+        })
+
+    rows.sort(key=lambda r: r["followers"], reverse=True)
+    return json.dumps({
+        "rows": rows,
+        "days": len(days),
+        "min_points": config.MIN_SNAPSHOTS_FOR_TREND,
+    })
 
 
 def web_bootstrap():
@@ -937,6 +1022,154 @@ async function analyze(){
   }
 }
 
+/* ═══════════════════════ Panorama comparativo ═══════════════════════ */
+const PALETTE = ["#d8a657","#8ec07c","#7daea3","#a99ad4","#ea6962","#e78a4e",
+                 "#89b482","#d3869b","#7c9f7c","#c9a86a"];
+
+const AXIS = {
+  grid:  { color:"#1d212a" },
+  ticks: { color:"#6b7280", font:{ size:10 } },
+};
+
+function renderOverview(data){
+  const rows = data.rows;
+  if(!rows.length) return;
+
+  const total  = rows.reduce((sum, r) => sum + r.followers, 0);
+  const albums = rows.reduce((sum, r) => sum + r.albums, 0);
+  const median = [...rows].sort((a,b) => a.followers - b.followers)[Math.floor(rows.length/2)];
+  const trendReady = rows.filter(r => r.points >= data.min_points).length;
+
+  $("overview-kpis").innerHTML = `
+    <div class="kpi"><div class="k">Artistas</div><div class="v">${rows.length}</div></div>
+    <div class="kpi"><div class="k">Seguidores sumados</div>
+      <div class="v">${(total/1e6).toFixed(1)}M</div></div>
+    <div class="kpi"><div class="k">Mediana de seguidores</div>
+      <div class="v flat" style="font-size:18px">${median.followers.toLocaleString("es-MX")}</div></div>
+    <div class="kpi"><div class="k">Álbumes sumados</div>
+      <div class="v flat">${albums.toLocaleString("es-MX")}</div></div>
+    <div class="kpi"><div class="k">Días recolectados</div>
+      <div class="v ${data.days >= data.min_points ? "up" : "flat"}">${data.days}</div></div>
+    <div class="kpi"><div class="k">Con tendencia calculable</div>
+      <div class="v ${trendReady ? "up" : "flat"}">${trendReady} / ${rows.length}</div></div>`;
+
+  $("overview-note").innerHTML = data.days >= data.min_points
+    ? `<b>Histórico suficiente.</b> Con ${data.days} días recolectados las tendencias
+       de estos artistas ya se calculan sobre datos reales medidos, no estimados.`
+    : `<b>Acumulando histórico.</b> Llevamos <b>${data.days}</b> día(s) de recolección
+       real. Hacen falta <b>${data.min_points}</b> para que una tendencia sea calculable.
+       Ningún dato pasado se ha rellenado con estimaciones: sencillamente no existe en
+       ninguna API pública, así que el agente lo está midiendo día a día. El
+       <a href="https://github.com/armando4322-2/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-/commits/main/folk_analytics/data/history.json">historial
+       de commits</a> deja constancia de cuándo se recogió cada punto.`;
+
+  // ── Ranking, en escala logarítmica ──
+  new Chart($("chart-rank").getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: rows.map(r => r.name),
+      datasets: [{
+        label: "Seguidores",
+        data: rows.map(r => r.followers),
+        backgroundColor: rows.map((_, i) => PALETTE[i % PALETTE.length] + "cc"),
+        borderColor:     rows.map((_, i) => PALETTE[i % PALETTE.length]),
+        borderWidth: 1,
+        borderRadius: 3,
+      }],
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor:"#1d212a", borderColor:"#272d39", borderWidth:1,
+          titleColor:"#e6e8ec", bodyColor:"#d8a657",
+          callbacks: {
+            label: c => ` ${c.parsed.x.toLocaleString("es-MX")} seguidores`,
+            afterLabel: c => {
+              const r = rows[c.dataIndex];
+              return `${r.albums} álbumes` + (r.genres.length ? `\n${r.genres.join(", ")}` : "");
+            },
+          },
+        },
+      },
+      scales: {
+        x: { type:"logarithmic", ...AXIS,
+             ticks:{ ...AXIS.ticks, callback: v => {
+               const l = Math.log10(v);
+               return Number.isInteger(l) ? v.toLocaleString("es-MX") : "";
+             }}},
+        y: { ...AXIS, ticks:{ ...AXIS.ticks, font:{ size:10.5 } } },
+      },
+    },
+  });
+
+  // ── Dispersión seguidores / álbumes ──
+  new Chart($("chart-scatter").getContext("2d"), {
+    type: "scatter",
+    data: {
+      datasets: [{
+        label: "Artistas",
+        data: rows.map(r => ({ x: r.albums, y: r.followers, name: r.name })),
+        backgroundColor: "#d8a657aa",
+        borderColor: "#d8a657",
+        pointRadius: 5, pointHoverRadius: 8,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor:"#1d212a", borderColor:"#272d39", borderWidth:1,
+          titleColor:"#e6e8ec", bodyColor:"#d8a657",
+          callbacks: {
+            title: items => items[0].raw.name,
+            label: c => ` ${c.raw.y.toLocaleString("es-MX")} seguidores · ${c.raw.x} álbumes`,
+          },
+        },
+      },
+      scales: {
+        x: { ...AXIS, title:{ display:true, text:"álbumes", color:"#6b7280", font:{size:11} } },
+        y: { type:"logarithmic", ...AXIS,
+             title:{ display:true, text:"seguidores", color:"#6b7280", font:{size:11} },
+             ticks:{ ...AXIS.ticks, callback: v => {
+               const l = Math.log10(v);
+               return Number.isInteger(l) ? (v >= 1e6 ? (v/1e6)+"M" : v.toLocaleString("es-MX")) : "";
+             }}},
+      },
+    },
+  });
+
+  // ── Géneros ──
+  const counts = {};
+  rows.forEach(r => r.genres.forEach(g => { counts[g] = (counts[g] || 0) + 1; }));
+  const top = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, 9);
+
+  new Chart($("chart-genres").getContext("2d"), {
+    type: "doughnut",
+    data: {
+      labels: top.map(([g]) => g),
+      datasets: [{
+        data: top.map(([, n]) => n),
+        backgroundColor: top.map((_, i) => PALETTE[i % PALETTE.length]),
+        borderColor: "#171a21", borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position:"right",
+                  labels:{ color:"#949bab", font:{size:11}, boxWidth:12, padding:8 } },
+        tooltip: { backgroundColor:"#1d212a", borderColor:"#272d39", borderWidth:1,
+                   titleColor:"#e6e8ec", bodyColor:"#d8a657",
+                   callbacks:{ label: c => ` ${c.parsed} artista(s)` } },
+      },
+    },
+  });
+}
+
 /* ═══════════════════════ Catálogo de artistas ═══════════════════════ */
 let CATALOG = [];
 const byName = new Map();
@@ -1162,6 +1395,7 @@ async function boot(){
     CATALOG = JSON.parse(await py.runPythonAsync("web_catalog()"));
     CATALOG.forEach(a => byName.set(a.name.toLowerCase(), a));
     renderArtists();
+    renderOverview(JSON.parse(await py.runPythonAsync("web_overview()")));
 
     switchSource();
 
