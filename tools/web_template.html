@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Folk Analytics — Streaming Intelligence Agent</title>
+<meta name="description" content="Agente de analisis de streaming para artistas independientes. Proyecto academico UPY Q2 2026 — Armando Karin Molina Marrufo.">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel-2:#1d212a; --border:#272d39;
+    --text:#e6e8ec; --muted:#949bab; --dim:#6b7280;
+    --accent:#d8a657; --green:#8ec07c; --red:#ea6962; --blue:#7daea3; --purple:#a99ad4;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text); font-family:var(--sans);
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 20px}
+
+  /* ---------- Overlay de carga ---------- */
+  #boot{
+    position:fixed; inset:0; background:var(--bg); z-index:100;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+    transition:opacity .5s ease;
+  }
+  #boot.done{opacity:0; pointer-events:none}
+  .boot-title{font-family:var(--mono); font-size:15px; color:var(--accent); letter-spacing:.5px}
+  .boot-status{font-family:var(--mono); font-size:12.5px; color:var(--muted); min-height:20px; text-align:center; padding:0 20px}
+  .bar{width:280px; height:3px; background:var(--border); border-radius:2px; overflow:hidden}
+  .bar>i{display:block; height:100%; width:0%; background:var(--accent); transition:width .4s ease}
+
+  /* ---------- Cabecera ---------- */
+  header{border-bottom:1px solid var(--border); padding:52px 0 40px; background:linear-gradient(180deg,#141821,var(--bg))}
+  .eyebrow{font-family:var(--mono); font-size:11.5px; letter-spacing:2.2px; text-transform:uppercase; color:var(--accent); margin-bottom:14px}
+  h1{margin:0 0 12px; font-size:clamp(30px,5.2vw,46px); line-height:1.12; letter-spacing:-.8px; font-weight:650}
+  .tagline{color:var(--muted); font-size:17px; max-width:640px; margin:0 0 24px}
+  .badges{display:flex; flex-wrap:wrap; gap:8px}
+  .badge{
+    font-family:var(--mono); font-size:11.5px; padding:4px 11px; border-radius:20px;
+    background:var(--panel); border:1px solid var(--border); color:var(--muted);
+  }
+  .badge b{color:var(--text); font-weight:600}
+  .badge.ok{border-color:#2f4a37; color:var(--green)}
+
+  /* ---------- Bloques ---------- */
+  section{padding:44px 0; border-bottom:1px solid var(--border)}
+  h2{font-size:13px; font-family:var(--mono); letter-spacing:1.6px; text-transform:uppercase;
+     color:var(--accent); margin:0 0 6px; font-weight:600}
+  .sub{color:var(--muted); font-size:14.5px; margin:0 0 26px; max-width:660px}
+  h3{font-size:16px; margin:0 0 8px; font-weight:600}
+
+  .panel{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:20px}
+  .grid{display:grid; gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+
+  /* ---------- Perfil GitHub ---------- */
+  .profile{display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap}
+  .avatar{width:84px; height:84px; border-radius:12px; border:1px solid var(--border); background:var(--panel-2); flex-shrink:0; object-fit:cover}
+  .profile-body{flex:1; min-width:220px}
+  .profile-name{font-size:19px; font-weight:650; margin:0 0 2px}
+  .profile-login{font-family:var(--mono); font-size:13px; color:var(--muted); margin:0 0 10px}
+  .profile-stats{display:flex; gap:18px; flex-wrap:wrap; font-size:13px; color:var(--muted); margin-top:10px}
+  .profile-stats b{color:var(--text)}
+
+  /* ---------- Controles ---------- */
+  .controls{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:16px}
+  .field{display:flex; flex-direction:column; gap:5px}
+  label{font-family:var(--mono); font-size:11px; letter-spacing:.8px; text-transform:uppercase; color:var(--dim)}
+  select,input[type=text]{
+    background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+    padding:8px 11px; border-radius:7px; font-family:var(--mono); font-size:13px; min-width:180px;
+  }
+  select:focus,input:focus{outline:none; border-color:var(--accent)}
+  button{
+    background:var(--accent); color:#191919; border:0; padding:9px 17px; border-radius:7px;
+    font-weight:650; font-size:13.5px; cursor:pointer; font-family:var(--sans);
+    transition:filter .15s ease;
+  }
+  button:hover:not(:disabled){filter:brightness(1.1)}
+  button:disabled{opacity:.45; cursor:not-allowed}
+  button.ghost{background:transparent; border:1px solid var(--border); color:var(--muted)}
+  button.ghost:hover:not(:disabled){border-color:var(--accent); color:var(--accent)}
+
+  /* ---------- Terminal ---------- */
+  .term-wrap{border:1px solid var(--border); border-radius:10px; overflow:hidden; background:#0b0d11}
+  .term-bar{
+    display:flex; align-items:center; gap:8px; padding:9px 14px;
+    background:var(--panel-2); border-bottom:1px solid var(--border);
+  }
+  .dot{width:10px; height:10px; border-radius:50%}
+  .term-title{font-family:var(--mono); font-size:11.5px; color:var(--dim); margin-left:6px}
+  .term{
+    margin:0; padding:18px; font-family:var(--mono); font-size:12.3px; line-height:1.55;
+    color:#cfd4dd; white-space:pre; overflow-x:auto; max-height:520px; overflow-y:auto;
+  }
+  .term::-webkit-scrollbar{width:10px; height:10px}
+  .term::-webkit-scrollbar-thumb{background:var(--border); border-radius:5px}
+  .l-info{color:var(--blue)} .l-warn{color:var(--accent)} .l-err{color:var(--red)}
+  .l-ok{color:var(--green)} .l-dim{color:var(--dim)} .l-head{color:var(--accent); font-weight:600}
+
+  /* ---------- Grafica ---------- */
+  .chart-box{position:relative; height:280px; margin-top:16px}
+
+  /* ---------- Tarjetas de metrica ---------- */
+  .kpi{background:var(--panel-2); border:1px solid var(--border); border-radius:9px; padding:14px 16px}
+  .kpi .k{font-family:var(--mono); font-size:10.5px; letter-spacing:1.1px; text-transform:uppercase; color:var(--dim)}
+  .kpi .v{font-size:22px; font-weight:650; margin-top:4px; letter-spacing:-.4px}
+  .kpi .v.up{color:var(--green)} .kpi .v.down{color:var(--red)} .kpi .v.flat{color:var(--muted)}
+
+  /* ---------- Ciclo del agente ---------- */
+  .loop{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px}
+  .step{background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:18px; position:relative}
+  .step-n{font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:1.4px; margin-bottom:8px}
+  .step p{margin:0; color:var(--muted); font-size:13.5px}
+  .step code{font-family:var(--mono); font-size:12px; color:var(--purple); background:var(--panel-2); padding:1px 5px; border-radius:4px}
+
+  /* ---------- Arbol ---------- */
+  .tree{font-family:var(--mono); font-size:12.3px; line-height:1.75; color:var(--muted); white-space:pre; overflow-x:auto; margin:0}
+  .tree b{color:var(--text); font-weight:600}
+  .tree i{color:var(--dim); font-style:normal}
+
+  table{width:100%; border-collapse:collapse; font-size:13.5px}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--border)}
+  th{font-family:var(--mono); font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--dim); font-weight:500}
+  td code{font-family:var(--mono); font-size:12.3px; color:var(--purple)}
+
+  footer{padding:34px 0 46px; color:var(--dim); font-size:13px}
+  .note{font-size:13px; color:var(--muted); background:var(--panel); border-left:2px solid var(--accent);
+        padding:12px 16px; border-radius:0 7px 7px 0; margin-top:16px}
+  .hide{display:none}
+</style>
+</head>
+<body>
+
+<div id="boot">
+  <div class="boot-title">FOLK ANALYTICS</div>
+  <div class="bar"><i id="bootbar"></i></div>
+  <div class="boot-status" id="bootmsg">Iniciando…</div>
+</div>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Universidad Politécnica de Yucatán · Q2 2026</div>
+    <h1>Folk&nbsp;Analytics</h1>
+    <p class="tagline">
+      Un agente de análisis de streaming para artistas independientes.
+      Esta página ejecuta el proyecto de verdad: el mismo Python del repositorio,
+      corriendo en tu navegador sobre WebAssembly.
+    </p>
+    <div class="badges">
+      <span class="badge">Autor <b>Armando Karin Molina Marrufo</b></span>
+      <span class="badge">Versión <b id="b-version">—</b></span>
+      <span class="badge ok">85 tests</span>
+      <span class="badge">Python <b id="b-python">—</b></span>
+      <span class="badge"><a href="https://github.com/armando4322-2/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-">Repositorio ↗</a></span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>Autor</h2>
+    <p class="sub">Perfil obtenido en vivo desde la API pública de GitHub.</p>
+    <div class="panel">
+      <div class="profile">
+        <img class="avatar" id="gh-avatar" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+        <div class="profile-body">
+          <p class="profile-name" id="gh-name">Armando Karin Molina Marrufo</p>
+          <p class="profile-login" id="gh-login">@armando4322-2</p>
+          <p class="sub" style="margin:0" id="gh-bio">Estudiante de Ingeniería · Universidad Politécnica de Yucatán</p>
+          <div class="profile-stats" id="gh-stats"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Ejecuta el agente</h2>
+    <p class="sub">
+      Elige un artista y pulsa Analizar. El agente valida la entrada, consulta la fuente
+      simulada, reconstruye el histórico la primera vez, calcula la tendencia y emite alertas.
+    </p>
+
+    <div class="controls">
+      <div class="field">
+        <label for="artist">Artista</label>
+        <select id="artist"></select>
+      </div>
+      <div class="field">
+        <label for="metric">Métrica</label>
+        <select id="metric">
+          <option value="followers">followers</option>
+          <option value="monthly_listeners">monthly_listeners</option>
+          <option value="popularity">popularity</option>
+        </select>
+      </div>
+      <button id="run">Analizar</button>
+      <button id="demo" class="ghost">Demo completa</button>
+      <button id="reset" class="ghost">Borrar histórico</button>
+    </div>
+
+    <div class="grid g3" id="kpis" style="margin-bottom:16px"></div>
+
+    <div class="term-wrap">
+      <div class="term-bar">
+        <span class="dot" style="background:#ea6962"></span>
+        <span class="dot" style="background:#d8a657"></span>
+        <span class="dot" style="background:#8ec07c"></span>
+        <span class="term-title" id="term-title">folk_analytics — salida del agente</span>
+      </div>
+      <pre class="term" id="term">Cargando el intérprete de Python…</pre>
+    </div>
+
+    <div class="panel chart-box hide" id="chart-panel">
+      <canvas id="chart"></canvas>
+    </div>
+
+    <div class="note">
+      <b>Sobre los datos:</b> la fuente es una API de streaming simulada. Es una decisión de
+      alcance deliberada: mantiene el proyecto reproducible y sin credenciales. La simulación
+      es <b>determinista</b> — para un artista y una fecha dados siempre devuelve el mismo
+      valor. Esa propiedad es justamente la que hace que las tendencias detectadas signifiquen
+      algo en lugar de medir ruido.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>El ciclo del agente</h2>
+    <p class="sub">Percibir → procesar → actuar. Cada fase vive en su propio módulo.</p>
+    <div class="loop">
+      <div class="step">
+        <div class="step-n">01 · PERCIBIR</div>
+        <h3>Entrada y consulta</h3>
+        <p>Valida el nombre introducido y consulta la fuente de datos, con reintentos y
+           retroceso exponencial ante fallos transitorios.</p>
+        <p style="margin-top:8px"><code>agent.py</code> <code>api/</code></p>
+      </div>
+      <div class="step">
+        <div class="step-n">02 · PROCESAR</div>
+        <h3>Memoria y análisis</h3>
+        <p>Persiste la instantánea en disco y analiza el histórico acumulado: estadística
+           descriptiva, cambio porcentual y regresión lineal.</p>
+        <p style="margin-top:8px"><code>storage/</code> <code>analytics/</code></p>
+      </div>
+      <div class="step">
+        <div class="step-n">03 · ACTUAR</div>
+        <h3>Alertas y reporte</h3>
+        <p>Evalúa la tendencia contra los umbrales configurados, genera las alertas
+           pertinentes y compone el reporte final.</p>
+        <p style="margin-top:8px"><code>analytics/alerts.py</code> <code>reports/</code></p>
+      </div>
+    </div>
+    <div class="note">
+      Lo que separa esto de un script de consulta puntual es la <b>memoria</b>. Cada ejecución
+      deja un rastro que las siguientes aprovechan. Sin histórico no hay tendencia que detectar,
+      solo ruido.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Arquitectura</h2>
+    <p class="sub">El proyecto programa contra una interfaz, nunca contra una implementación concreta.</p>
+    <div class="grid g2">
+      <div class="panel">
+        <pre class="tree"><b>folk_analytics/</b>
+├── <b>agent.py</b>          <i>ciclo percibir → procesar → actuar</i>
+├── <b>cli.py</b>            <i>menú interactivo y modo demo</i>
+├── <b>config.py</b>         <i>parámetros ajustables</i>
+├── <b>logging_setup.py</b>  <i>logging con fallback ASCII</i>
+├── <b>api/</b>
+│   ├── base.py       <i>interfaz StreamingClient</i>
+│   ├── models.py     <i>ArtistData</i>
+│   ├── simulated.py  <i>fuente determinista</i>
+│   └── spotify.py    <i>fuente real (futuro)</i>
+├── <b>analytics/</b>
+│   ├── metrics.py    <i>estadística descriptiva</i>
+│   ├── trends.py     <i>detección de tendencias</i>
+│   └── alerts.py     <i>motor de alertas</i>
+├── <b>storage/</b>
+│   └── json_store.py <i>histórico y watchlist</i>
+└── <b>reports/</b>
+    └── console.py    <i>renderizado</i></pre>
+      </div>
+      <div class="panel">
+        <h3 style="margin-bottom:14px">Parámetros</h3>
+        <table>
+          <tr><th>Parámetro</th><th>Valor</th></tr>
+          <tr><td><code>ANALYSIS_WINDOW_DAYS</code></td><td id="c-window">—</td></tr>
+          <tr><td><code>MIN_SNAPSHOTS_FOR_TREND</code></td><td id="c-min">—</td></tr>
+          <tr><td><code>TREND_THRESHOLD_PCT</code></td><td id="c-thr">—</td></tr>
+          <tr><td><code>ALERT_DROP_PCT</code></td><td id="c-drop">—</td></tr>
+          <tr><td><code>ALERT_SPIKE_PCT</code></td><td id="c-spike">—</td></tr>
+        </table>
+        <p class="sub" style="margin:16px 0 0; font-size:13px">
+          Leídos en vivo desde <code style="color:var(--purple)">config.py</code> por el
+          intérprete que corre en esta página.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Cómo ejecutarlo en tu equipo</h2>
+    <p class="sub">Requiere Python 3.10 o superior. El núcleo funciona solo con la librería estándar.</p>
+    <div class="panel">
+      <pre class="tree"><i># clonar</i>
+git clone https://github.com/armando4322-2/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-.git
+cd UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-
+
+<i># ejecutar</i>
+python run.py                 <i># menú interactivo</i>
+python run.py --demo          <i># demostración completa</i>
+python run.py -a "AURORA"     <i># un artista y sale</i>
+
+<i># tests</i>
+python -m pytest tests/ -v
+
+<i># regenerar esta página</i>
+python tools/build_web.py</pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Proyecto académico — Universidad Politécnica de Yucatán, Q2 2026 ·
+    <a href="https://github.com/armando4322-2/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-">Código fuente</a> ·
+    <a href="https://github.com/armando4322-2">@armando4322-2</a>
+    <p style="margin-top:10px; font-size:12px; color:var(--dim)">
+      Esta página ejecuta Python real mediante Pyodide (CPython compilado a WebAssembly).
+      No hay servidor: todo el cómputo ocurre en tu navegador.
+    </p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+/*__PYTHON_SOURCES__*/
+
+/* ═══════════════════════ Puente Python ↔ navegador ═══════════════════════ */
+const BRIDGE = String.raw`
+import json, sys, io, logging, contextlib
+from pathlib import Path
+
+sys.path.insert(0, "/project")
+
+from folk_analytics import __version__, config
+from folk_analytics.agent import FolkAnalyticsAgent, InvalidInputError
+from folk_analytics.api.base import ArtistNotFoundError, StreamingAPIError
+from folk_analytics.logging_setup import setup_logging
+
+setup_logging(level=logging.INFO)
+
+_agents = {}
+_log_pos = [0]
+
+
+def _agent(metric):
+    if metric not in _agents:
+        _agents[metric] = FolkAnalyticsAgent(metric=metric)
+    return _agents[metric]
+
+
+def _new_logs(max_lines=60):
+    """Lineas de log escritas desde la ultima llamada, recortadas.
+
+    Una reconstruccion de historico genera cientos de lineas; volcarlas todas
+    en el terminal de la web ahoga el reporte, que es lo que interesa leer.
+    """
+    path = config.LOG_FILE
+    if not path.exists():
+        return ""
+    text = path.read_text(encoding="utf-8", errors="replace")
+    fresh = text[_log_pos[0]:]
+    _log_pos[0] = len(text)
+
+    lines = fresh.splitlines()
+    if len(lines) > max_lines:
+        hidden = len(lines) - max_lines
+        lines = lines[:max_lines] + [f"  … {hidden} lineas mas en logs/app.log"]
+    return "\n".join(lines) + ("\n" if lines else "")
+
+
+def web_bootstrap():
+    agent = _agent("followers")
+    return json.dumps({
+        "version": __version__,
+        "python": sys.version.split()[0],
+        "catalog": agent.catalog(),
+        "config": {
+            "window": config.ANALYSIS_WINDOW_DAYS,
+            "min_points": config.MIN_SNAPSHOTS_FOR_TREND,
+            "threshold": config.TREND_THRESHOLD_PCT,
+            "drop": config.ALERT_DROP_PCT,
+            "spike": config.ALERT_SPIKE_PCT,
+        },
+    })
+
+
+def web_analyze(name, metric):
+    _new_logs()
+    try:
+        result = _agent(metric).analyze(name)
+    except InvalidInputError as exc:
+        return json.dumps({"ok": False, "kind": "input",
+                           "error": str(exc), "logs": _new_logs()})
+    except ArtistNotFoundError:
+        return json.dumps({"ok": False, "kind": "notfound",
+                           "error": "El artista no existe en el catalogo de la fuente.",
+                           "logs": _new_logs()})
+    except StreamingAPIError as exc:
+        return json.dumps({"ok": False, "kind": "api",
+                           "error": str(exc), "logs": _new_logs()})
+
+    history = _agent(metric).store.history(
+        result.snapshot.artist_id, days=config.ANALYSIS_WINDOW_DAYS
+    )
+    return json.dumps({
+        "ok": True,
+        "report": result.to_report(),
+        "logs": _new_logs(),
+        "artist": result.snapshot.name,
+        "metric": metric,
+        "labels": [s.captured_at.strftime("%d %b") for s in history],
+        "values": [getattr(s, metric) for s in history],
+        "kpi": {
+            "current": getattr(result.snapshot, metric),
+            "change_pct": round(result.trend.change_pct, 1),
+            "direction": result.trend.direction.value,
+            "confidence": result.trend.confidence_label,
+            "r2": round(result.trend.r_squared, 2),
+            "points": result.trend.sample_size,
+            "avg": round(result.summary.average),
+        },
+        "alerts": [{"level": a.level.value, "message": a.message} for a in result.alerts],
+    })
+
+
+def web_demo():
+    _new_logs()
+    from folk_analytics.cli import run_demo
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        run_demo(_agent("followers"))
+    return json.dumps({"ok": True, "output": buffer.getvalue(), "logs": _new_logs(25)})
+
+
+def web_reset():
+    _new_logs()
+    for agent in _agents.values():
+        agent.reset_history()
+    return json.dumps({"ok": True, "logs": _new_logs()})
+`;
+
+/* ═══════════════════════ Utilidades de interfaz ═══════════════════════ */
+const $ = (id) => document.getElementById(id);
+const term = $("term");
+let chart = null;
+let py = null;
+
+function setBoot(pct, msg){
+  $("bootbar").style.width = pct + "%";
+  $("bootmsg").textContent = msg;
+}
+
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+/** Colorea la salida del agente segun el tipo de linea. */
+function paint(text){
+  return esc(text).split("\n").map(line => {
+    if (/^\[ERROR|^\[CRITICAL/.test(line))          return `<span class="l-err">${line}</span>`;
+    if (/^\[WARNING/.test(line))                     return `<span class="l-warn">${line}</span>`;
+    if (/^\[INFO|^\[DEBUG/.test(line))               return `<span class="l-dim">${line}</span>`;
+    if (/^\s*[═╔╚]|FOLK ANALYTICS/.test(line))       return `<span class="l-head">${line}</span>`;
+    if (/^\s*\[X\]/.test(line))                      return `<span class="l-err">${line}</span>`;
+    if (/^\s*\[!\]/.test(line))                      return `<span class="l-warn">${line}</span>`;
+    if (/^\s*\[i\]/.test(line))                      return `<span class="l-info">${line}</span>`;
+    if (/CRECIENDO|↗/.test(line))                    return `<span class="l-ok">${line}</span>`;
+    if (/DECAYENDO|↘/.test(line))                    return `<span class="l-err">${line}</span>`;
+    if (/^\s{2}[A-ZÁÉÍÓÚÑ ]{4,}$/.test(line))        return `<span class="l-head">${line}</span>`;
+    return line;
+  }).join("\n");
+}
+
+function write(text, {append=false} = {}){
+  const html = paint(text);
+  if (append) term.innerHTML += "\n" + html; else term.innerHTML = html;
+  term.scrollTop = 0;
+}
+
+function busy(state){
+  ["run","demo","reset"].forEach(id => $(id).disabled = state);
+  $("term-title").textContent = state
+    ? "folk_analytics — ejecutando…"
+    : "folk_analytics — salida del agente";
+}
+
+/* ═══════════════════════ Render de resultados ═══════════════════════ */
+function renderKpis(k, alerts){
+  const arrow = k.change_pct > 0 ? "▲" : (k.change_pct < 0 ? "▼" : "■");
+  const cls   = k.direction.includes("CREC") ? "up"
+              : k.direction.includes("DECA") ? "down" : "flat";
+  $("kpis").innerHTML = `
+    <div class="kpi"><div class="k">Valor actual</div>
+      <div class="v">${k.current.toLocaleString("es-MX")}</div></div>
+    <div class="kpi"><div class="k">Cambio en la ventana</div>
+      <div class="v ${cls}">${arrow} ${k.change_pct > 0 ? "+" : ""}${k.change_pct}%</div></div>
+    <div class="kpi"><div class="k">Tendencia</div>
+      <div class="v ${cls}" style="font-size:17px">${k.direction}</div></div>
+    <div class="kpi"><div class="k">Confianza</div>
+      <div class="v flat" style="font-size:17px">${k.confidence} · R²=${k.r2}</div></div>
+    <div class="kpi"><div class="k">Instantáneas</div>
+      <div class="v flat">${k.points}</div></div>
+    <div class="kpi"><div class="k">Alertas</div>
+      <div class="v ${alerts.length ? "down" : "up"}" style="font-size:17px">
+        ${alerts.length ? alerts.length + " activa" + (alerts.length > 1 ? "s" : "") : "ninguna"}
+      </div></div>`;
+}
+
+function renderChart(labels, values, artist, metric){
+  $("chart-panel").classList.remove("hide");
+  const ctx = $("chart").getContext("2d");
+  if (chart) chart.destroy();
+
+  const grad = ctx.createLinearGradient(0, 0, 0, 280);
+  grad.addColorStop(0, "rgba(216,166,87,.28)");
+  grad.addColorStop(1, "rgba(216,166,87,0)");
+
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: `${artist} — ${metric}`,
+        data: values,
+        borderColor: "#d8a657",
+        backgroundColor: grad,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        tension: .3,
+        fill: true,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { intersect: false, mode: "index" },
+      plugins: {
+        legend: { labels: { color: "#949bab", font: { family: "monospace", size: 11 } } },
+        tooltip: {
+          backgroundColor: "#1d212a", borderColor: "#272d39", borderWidth: 1,
+          titleColor: "#e6e8ec", bodyColor: "#d8a657",
+          callbacks: { label: c => " " + c.parsed.y.toLocaleString("es-MX") },
+        },
+      },
+      scales: {
+        x: { grid: { color: "#1d212a" },
+             ticks: { color: "#6b7280", font: { size: 10 }, maxTicksLimit: 10 } },
+        y: { grid: { color: "#1d212a" },
+             ticks: { color: "#6b7280", font: { size: 10 },
+                      callback: v => v.toLocaleString("es-MX") } },
+      },
+    },
+  });
+}
+
+/* ═══════════════════════ Acciones ═══════════════════════ */
+async function analyze(){
+  busy(true);
+  const name   = $("artist").value;
+  const metric = $("metric").value;
+  write(`$ python run.py -a "${name}" --metric ${metric}\n`);
+
+  try{
+    const data = JSON.parse(await py.runPythonAsync(
+      `web_analyze(${JSON.stringify(name)}, ${JSON.stringify(metric)})`
+    ));
+
+    if(!data.ok){
+      write(data.logs + `\n[ERROR] ${data.error}\n`, {append:true});
+      $("kpis").innerHTML = "";
+      $("chart-panel").classList.add("hide");
+      return;
+    }
+
+    write(data.logs + data.report, {append:true});
+    renderKpis(data.kpi, data.alerts);
+    renderChart(data.labels, data.values, data.artist, data.metric);
+  }catch(err){
+    write(`\n[ERROR] Fallo inesperado: ${err}\n`, {append:true});
+  }finally{
+    busy(false);
+  }
+}
+
+async function demo(){
+  busy(true);
+  write("$ python run.py --demo\n");
+  try{
+    const data = JSON.parse(await py.runPythonAsync("web_demo()"));
+    write(data.logs + data.output, {append:true});
+    $("kpis").innerHTML = "";
+    $("chart-panel").classList.add("hide");
+  }catch(err){
+    write(`\n[ERROR] ${err}\n`, {append:true});
+  }finally{
+    busy(false);
+  }
+}
+
+async function reset(){
+  busy(true);
+  write("$ borrar histórico almacenado\n");
+  try{
+    const data = JSON.parse(await py.runPythonAsync("web_reset()"));
+    write(data.logs + "\n  Histórico borrado. La próxima consulta lo reconstruirá.\n",
+          {append:true});
+    $("kpis").innerHTML = "";
+    $("chart-panel").classList.add("hide");
+  }finally{
+    busy(false);
+  }
+}
+
+/* ═══════════════════════ Perfil de GitHub ═══════════════════════ */
+async function loadProfile(){
+  try{
+    const [user, repo] = await Promise.all([
+      fetch("https://api.github.com/users/armando4322-2").then(r => r.ok ? r.json() : null),
+      fetch("https://api.github.com/repos/armando4322-2/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-")
+        .then(r => r.ok ? r.json() : null),
+    ]);
+
+    if(user){
+      if(user.avatar_url) $("gh-avatar").src = user.avatar_url;
+      if(user.name)  $("gh-name").textContent  = user.name;
+      if(user.login) $("gh-login").textContent = "@" + user.login;
+      if(user.bio)   $("gh-bio").textContent   = user.bio;
+
+      const stats = [];
+      stats.push(`<span><b>${user.public_repos ?? 0}</b> repositorios</span>`);
+      stats.push(`<span><b>${user.followers ?? 0}</b> seguidores</span>`);
+      if(user.created_at){
+        stats.push(`<span>En GitHub desde <b>${new Date(user.created_at).getFullYear()}</b></span>`);
+      }
+      if(repo && repo.pushed_at){
+        stats.push(`<span>Último push <b>${new Date(repo.pushed_at)
+          .toLocaleDateString("es-MX", {day:"numeric", month:"short", year:"numeric"})}</b></span>`);
+      }
+      $("gh-stats").innerHTML = stats.join("");
+    }
+  }catch(_){
+    $("gh-stats").innerHTML =
+      "<span>No se pudo consultar la API de GitHub (sin red o límite de peticiones alcanzado).</span>";
+  }
+}
+
+/* ═══════════════════════ Arranque ═══════════════════════ */
+async function boot(){
+  try{
+    setBoot(8, "Descargando el intérprete de Python (Pyodide)…");
+    py = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/" });
+
+    setBoot(55, "Instalando el paquete folk_analytics…");
+    for(const [path, source] of Object.entries(PYTHON_SOURCES)){
+      const full = "/project/" + path;
+      const dir  = full.substring(0, full.lastIndexOf("/"));
+      py.FS.mkdirTree(dir);
+      py.FS.writeFile(full, source, { encoding: "utf8" });
+    }
+    py.FS.mkdirTree("/project/data");
+    py.FS.mkdirTree("/project/logs");
+
+    setBoot(78, "Inicializando el agente…");
+    await py.runPythonAsync(BRIDGE);
+
+    const info = JSON.parse(await py.runPythonAsync("web_bootstrap()"));
+
+    $("b-version").textContent = info.version;
+    $("b-python").textContent  = info.python;
+    $("c-window").textContent  = info.config.window + " días";
+    $("c-min").textContent     = info.config.min_points + " puntos";
+    $("c-thr").textContent     = "±" + info.config.threshold + "%";
+    $("c-drop").textContent    = info.config.drop + "%";
+    $("c-spike").textContent   = "+" + info.config.spike + "%";
+
+    const sel = $("artist");
+    sel.innerHTML = info.catalog
+      .map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+    sel.value = "Novo Amor";
+
+    $("run").onclick   = analyze;
+    $("demo").onclick  = demo;
+    $("reset").onclick = reset;
+
+    write(
+      "  Folk Analytics " + info.version + " listo.\n" +
+      "  Intérprete: CPython " + info.python + " sobre WebAssembly.\n" +
+      "  Módulos cargados: " + Object.keys(PYTHON_SOURCES).length + "\n\n" +
+      "  Elige un artista y pulsa Analizar."
+    );
+
+    setBoot(100, "Listo");
+    setTimeout(() => $("boot").classList.add("done"), 350);
+  }catch(err){
+    setBoot(100, "No se pudo iniciar el intérprete: " + err);
+    console.error(err);
+    write("[ERROR] No se pudo iniciar Pyodide.\n" + err);
+    setTimeout(() => $("boot").classList.add("done"), 2500);
+  }
+}
+
+loadProfile();
+boot();
+</script>
+</body>
+</html>

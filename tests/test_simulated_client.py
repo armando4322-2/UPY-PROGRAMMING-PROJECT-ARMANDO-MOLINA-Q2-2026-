@@ -55,6 +55,28 @@ class TestSimulatedClient:
         actual = client.fetch_artist_at("Hollow Pines", hoy)
         assert pasado.followers > actual.followers
 
+    def test_la_popularidad_se_mantiene_en_rango(self, client):
+        """Es un indice 0-100, no un contador: no puede desbordarse."""
+        hoy = datetime.now(timezone.utc).date()
+        for dias in range(0, 200, 7):
+            data = client.fetch_artist_at("Hollow Pines", hoy - timedelta(days=dias))
+            assert 0 <= data.popularity <= 100
+
+    def test_la_popularidad_evoluciona_con_el_tiempo(self, client):
+        """Si fuera constante, la metrica 'popularity' no diria nada."""
+        hoy = datetime.now(timezone.utc).date()
+        valores = {
+            client.fetch_artist_at("Hollow Pines", hoy - timedelta(days=d)).popularity
+            for d in range(0, 30, 5)
+        }
+        assert len(valores) > 1
+
+    def test_la_popularidad_tambien_es_determinista(self, client):
+        dia = datetime.now(timezone.utc).date() - timedelta(days=9)
+        a = client.fetch_artist_at("AURORA", dia).popularity
+        b = client.fetch_artist_at("AURORA", dia).popularity
+        assert a == b
+
     def test_artista_sin_actividad(self, client):
         data = client.fetch_artist("unknown artist")
         assert not data.has_activity

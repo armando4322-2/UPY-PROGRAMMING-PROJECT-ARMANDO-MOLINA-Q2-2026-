@@ -143,11 +143,15 @@ class SimulatedClient(StreamingClient):
         seeded = random.Random(f"{artist_id}:{day.isoformat()}")
         return 1.0 + seeded.uniform(-volatility, volatility)
 
-    def _metrics_for_day(self, entry: dict, target_day: date) -> tuple[int, int]:
-        """Calcula (followers, monthly_listeners) para una fecha concreta.
+    def _metrics_for_day(self, entry: dict, target_day: date) -> tuple[int, int, int]:
+        """Calcula (followers, monthly_listeners, popularity) para una fecha.
 
         Los valores base del catalogo representan el dia de hoy; las fechas
         pasadas se extrapolan hacia atras con la tasa de crecimiento.
+
+        La popularidad es un indice acotado 0-100, no un contador, asi que se
+        mueve mucho menos que los seguidores: se le aplica un tercio de la
+        volatilidad y se recorta al rango valido.
         """
         today = datetime.now(timezone.utc).date()
         days_offset = (target_day - today).days
@@ -157,7 +161,14 @@ class SimulatedClient(StreamingClient):
 
         followers = max(0, int(entry["followers"] * growth * noise))
         listeners = max(0, int(entry["monthly_listeners"] * growth * noise))
-        return followers, listeners
+
+        pop_noise = self._noise_factor(
+            entry["artist_id"] + ":pop", target_day, entry["volatility"] / 3
+        )
+        popularity = int(round(entry["popularity"] * growth * pop_noise))
+        popularity = max(0, min(100, popularity))
+
+        return followers, listeners, popularity
 
     # -- Interfaz publica -----------------------------------------------------
 
@@ -192,7 +203,7 @@ class SimulatedClient(StreamingClient):
         logger.debug("Consultando '%s' para la fecha %s", artist_name, target_day)
         self._simulate_network(artist_name, quiet=quiet)
 
-        followers, listeners = self._metrics_for_day(entry, target_day)
+        followers, listeners, popularity = self._metrics_for_day(entry, target_day)
 
         captured = datetime.combine(
             target_day, datetime.min.time(), tzinfo=timezone.utc
@@ -205,7 +216,7 @@ class SimulatedClient(StreamingClient):
             name=entry["display_name"],
             followers=followers,
             monthly_listeners=listeners,
-            popularity=entry["popularity"],
+            popularity=popularity,
             source=self.source_name,
             captured_at=captured,
         )
