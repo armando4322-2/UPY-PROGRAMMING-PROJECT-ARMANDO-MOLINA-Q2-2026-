@@ -1314,17 +1314,19 @@ function renderArtists(){
     </button>`).join("");
 
   $("artists").querySelectorAll(".card").forEach(card => {
-    card.onclick = () => {
+    card.onclick = async () => {
       const artist = CATALOG[Number(card.dataset.i)];
       $("source").value = "deezer";
       switchSource();
       $("artist-free").value = artist.name;
       hideAc();
-      // Ancla estable: el panel entero. Antes se apuntaba al campo del
-      // catalogo, que queda oculto al cambiar a la fuente real, y el scroll
-      // acababa en un sitio arbitrario.
-      $("run-panel").scrollIntoView({behavior:"smooth", block:"start"});
-      analyze();
+
+      // El scroll va DESPUES del analisis y sin animacion. Lanzarlo antes
+      // fallaba: al pintar metricas, canciones y grafica cambia la altura de
+      // la pagina y el desplazamiento suave se cancela a medio camino,
+      // dejando al usuario en la rejilla sin ver el resultado.
+      await analyze();
+      $("run-panel").scrollIntoView({block: "start"});
     };
   });
 }
