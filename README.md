@@ -4,6 +4,13 @@
 **Institution:** Universidad Politécnica de Yucatán (UPY)
 **Term:** Q2 2026
 
+[![tests](https://github.com/armando4322-2/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-/actions/workflows/tests.yml/badge.svg)](https://github.com/armando4322-2/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-/actions/workflows/tests.yml)
+
+### ▶ [Run it in your browser](https://armando4322-2.github.io/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-/)
+
+No installation required. The live page runs the real Python package in your
+browser via WebAssembly.
+
 ---
 
 ## What is Folk Analytics?
@@ -137,6 +144,34 @@ copying `.env.example` to `.env`. Then: `python run.py --source spotify`
 > the analysis leans on `followers` and the `popularity` index (0–100), which are
 > officially available. Documenting the limitation beats inventing the number.
 
+## Web interface
+
+[**armando4322-2.github.io/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-**](https://armando4322-2.github.io/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-/)
+
+The page is not a JavaScript reimplementation or a mockup. It loads
+[Pyodide](https://pyodide.org) — CPython compiled to WebAssembly — writes the
+actual package source into a virtual filesystem, imports it, and runs the same
+`FolkAnalyticsAgent` the terminal uses. There is no server: all computation
+happens in the visitor's browser.
+
+It offers live agent execution with artist and metric selectors, a Chart.js
+history plot, metric cards, a terminal showing the real colour-coded log output,
+the author's GitHub profile fetched live, and documentation whose configuration
+values are read at runtime from `config.py` by the page's own interpreter.
+
+### Rebuilding the page
+
+```bash
+python tools/build_web.py
+```
+
+`tools/build_web.py` injects the package sources into `tools/web_template.html`
+and writes `docs/index.html`. This exists to avoid two sources of truth: change
+the package, rerun the script, and the page is current. It also counts the test
+functions with `ast` so the figure shown in the header can never go stale.
+Two modules are excluded: `__main__.py` (argparse does not apply in a browser)
+and `spotify.py` (needs network and credentials).
+
 ## Project structure
 
 ```
@@ -159,7 +194,12 @@ folk_analytics/
 │   └── json_store.py    # history and watchlist persistence
 └── reports/
     └── console.py       # report rendering
-tests/                   # 85 pytest tests
+tests/                   # 88 pytest tests
+tools/
+├── build_web.py         # generates docs/index.html from the package
+└── web_template.html    # page template
+docs/
+└── index.html           # generated — the live web interface
 logs/
 ├── development.log      # engineering diary (versioned)
 └── app.log              # runtime output (regenerated, not versioned)
@@ -171,7 +211,7 @@ logs/
 python -m pytest tests/ -v
 ```
 
-The suite covers input validation, trend mathematics, persistence, the alert
+88 tests. The suite covers input validation, trend mathematics, persistence, the alert
 engine and the full agent flow, including edge cases: constant series, division by
 zero, odd-length windows, corrupt history files and retry exhaustion.
 

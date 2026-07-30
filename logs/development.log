@@ -192,3 +192,86 @@
 2026-07-27 13:22:30 — [INFO] .gitignore updated to reflect the split
 2026-07-27 13:23:00 — [INFO] Session 02 ended
 ────────────────────────────────────────────────────────────────────────────────
+
+
+────────────────────────────────────────────────────────────────────────────────
+ SESSION 03 — 2026-07-29 — Guided run-through and web interface (v2.1.0)
+────────────────────────────────────────────────────────────────────────────────
+
+ WALKTHROUGH — running the agent with the author
+ -----------------------------------------------
+2026-07-29 21:55:00 — [INFO] Session started — demonstrating all three entry points
+2026-07-29 21:56:00 — [INFO] Verified: direct analysis, interactive menu, demo mode
+2026-07-29 21:56:30 — [INFO] Verified: watchlist add and batch analysis
+2026-07-29 21:57:00 — [INFO] Verified: input validation rejects text, out-of-range
+                             numbers and empty entries without crashing the loop
+2026-07-29 21:58:00 — [WARNING] Usability defect found while demonstrating: the
+                                first query for any artist emitted ~30 INFO lines
+                                plus retry warnings from history reconstruction,
+                                drowning the report the user actually wants to read
+2026-07-29 21:59:00 — [FIXED]   Added a 'quiet' parameter to fetch_artist_at().
+                                Per-call detail during seeding drops to DEBUG; the
+                                summary stays at INFO. Full trail remains in app.log
+
+ DECISION — scope of the web interface
+ -------------------------------------
+2026-07-29 22:02:00 — [INFO] Author requested a browser interface that shows the
+                             project, the GitHub profile, and actually runs it
+2026-07-29 22:03:00 — [INFO] Three options weighed:
+                               Pyodide     — real Python via WebAssembly
+                               JS rewrite  — fast to load, but a parallel copy of
+                                             the logic and a second source of truth
+                               Flask       — real Python, but needs a server running
+2026-07-29 22:04:00 — [INFO] Decision: Pyodide. Running the actual package matters
+                             more than saving the initial download. A JavaScript
+                             reimplementation would stop being the project.
+2026-07-29 22:04:30 — [INFO] Hosting: docs/ on GitHub Pages
+
+ IMPLEMENTATION
+ --------------
+2026-07-29 22:06:00 — [INFO] tools/build_web.py — injects package sources into the
+                             template and generates docs/index.html
+2026-07-29 22:06:10 — [INFO] Rationale: writing the HTML by hand would create two
+                             sources of truth. The generator keeps the page and the
+                             package in lockstep.
+2026-07-29 22:06:20 — [INFO] Excluded from the bundle: __main__.py (argparse has no
+                             meaning in a browser) and spotify.py (needs network)
+2026-07-29 22:08:00 — [INFO] tools/web_template.html — page and Python bridge
+2026-07-29 22:09:00 — [INFO] Bridge exposes web_bootstrap, web_analyze, web_demo and
+                             web_reset, all returning JSON
+2026-07-29 22:12:00 — [INFO] Bridge verified against the real package before deploying:
+                             8 cases including invalid input, unknown artist and
+                             alternative metrics — all passing
+2026-07-29 22:14:00 — [WARNING] Found while testing: the 'popularity' metric was flat.
+                                It was a constant in the catalog, so selecting it
+                                produced a meaningless straight line
+2026-07-29 22:15:00 — [FIXED]   Popularity now evolves over time. Being a bounded
+                                0-100 index rather than a counter, it gets one third
+                                of the volatility and is clamped to range
+2026-07-29 22:16:00 — [INFO]    3 tests added: range, evolution and determinism of
+                                popularity — 88 tests total
+2026-07-29 22:18:00 — [INFO] GitHub Pages enabled — branch main, folder /docs
+2026-07-29 22:20:00 — [INFO] Deployed and tested in a real browser
+
+ BROWSER TESTING
+ ---------------
+2026-07-29 22:21:00 — [INFO] Verified: Pyodide boots, CPython 3.12.7, 17 modules loaded
+2026-07-29 22:21:30 — [INFO] Verified: GitHub profile card populates from the live API
+2026-07-29 22:22:00 — [INFO] Verified: analysis runs, metric cards populate,
+                             Chart.js plots the history
+2026-07-29 22:22:30 — [INFO] Verified: Hollow Pines triggers the CRITICAL alert
+                             (-25.4%, R2=0.97) and renders it in red
+2026-07-29 22:23:00 — [INFO] Verified: demo mode runs all 10 cases in the browser
+2026-07-29 22:23:30 — [INFO] Verified: no console errors
+2026-07-29 22:24:00 — [WARNING] Found in the browser: the terminal showed DEBUG lines
+                                from the log file, burying the report again — the
+                                same noise problem in a different surface
+2026-07-29 22:24:30 — [FIXED]   Web terminal filters to INFO and above. DEBUG detail
+                                stays in app.log for auditing
+2026-07-29 22:25:00 — [WARNING] Found: the test count in the header was hardcoded at
+                                85 and had already drifted from the real 88
+2026-07-29 22:25:30 — [FIXED]   build_web.py counts test functions with ast and
+                                injects the figure. It can no longer go stale.
+2026-07-29 22:30:00 — [INFO] README updated: live demo link, CI badge, web section
+2026-07-29 22:31:00 — [INFO] Session 03 ended
+────────────────────────────────────────────────────────────────────────────────
