@@ -24,16 +24,14 @@ EL PROBLEMA DE LOS HOMONIMOS
 ----------------------------
 Buscar "AURORA" y quedarse con el primer resultado devuelve un artista
 homonimo de 2.486 seguidores en lugar de la AURORA noruega, que tiene mas
-de medio millon y aparece en sexta posicion. Por eso `select_best_match`
-puntua los candidatos por coincidencia de nombre y solo despues por
-numero de seguidores.
+de medio millon y aparece en sexta posicion. La desambiguacion vive en
+`api/matching.py`, compartida con las demas fuentes.
 """
 
 from __future__ import annotations
 
 import json
 import time
-import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -44,6 +42,8 @@ from folk_analytics.api.base import (
     StreamingAPIError,
     StreamingClient,
 )
+from folk_analytics.api.matching import match_score, normalize
+from folk_analytics.api.matching import select_best_match as _select
 from folk_analytics.api.models import ArtistData, utcnow
 from folk_analytics.logging_setup import get_logger
 
@@ -57,81 +57,19 @@ USER_AGENT = "FolkAnalytics/2.2 (proyecto academico UPY)"
 UNAVAILABLE = ("monthly_listeners", "popularity")
 
 
-def normalize(text: str) -> str:
-    """Normaliza un nombre para poder compararlo.
-
-    Quita acentos, unifica mayusculas, colapsa espacios y equipara las
-    variantes de la conjuncion ("&" frente a "and"/"y"), que es la
-    diferencia mas comun entre como escribe el usuario y como registra
-    Deezer a un artista ("Iron & Wine" / "Iron and Wine").
-    """
-    text = unicodedata.normalize("NFKD", str(text))
-    text = "".join(ch for ch in text if not unicodedata.combining(ch))
-    text = text.casefold().strip()
-    text = text.replace("&", " and ").replace(" y ", " and ")
-    return " ".join(text.split())
-
-
-def match_score(candidate_name: str, query: str) -> int:
-    """Puntua cuanto se parece un candidato a lo que pidio el usuario.
-
-    3 = coincidencia exacta
-    2 = el candidato empieza igual que la consulta
-    1 = uno contiene al otro
-    0 = sin relacion (se descarta)
-    """
-    name, wanted = normalize(candidate_name), normalize(query)
-
-    if not name or not wanted:
-        return 0
-    if name == wanted:
-        return 3
-    if name.startswith(wanted) or wanted.startswith(name):
-        return 2
-    if wanted in name or name in wanted:
-        return 1
-    return 0
-
-
 def select_best_match(candidates: list[dict], query: str) -> dict:
-    """Elige el artista correcto entre los resultados de la busqueda.
+    """Elige el artista correcto entre los resultados de Deezer.
 
-    Ordena por calidad de coincidencia y, a igualdad, por numero de
-    seguidores. Sin este paso, buscar "AURORA" devuelve un homonimo
-    marginal en lugar de la artista que el usuario tenia en mente.
-
-    Raises:
-        ArtistNotFoundError: si ningun candidato guarda relacion con la
-            consulta.
+    Envoltorio del criterio compartido, indicandole donde encontrar el
+    nombre y el numero de seguidores en el formato de Deezer.
     """
-    if not candidates:
-        raise ArtistNotFoundError(f"Deezer no devolvio resultados para {query!r}")
-
-    scored = [
-        (match_score(c.get("name", ""), query), int(c.get("nb_fan", 0) or 0), c)
-        for c in candidates
-    ]
-    scored = [item for item in scored if item[0] > 0]
-
-    if not scored:
-        names = ", ".join(repr(c.get("name", "?")) for c in candidates[:3])
-        raise ArtistNotFoundError(
-            f"Ningun resultado de Deezer coincide con {query!r} (se obtuvo: {names})"
-        )
-
-    scored.sort(key=lambda item: (item[0], item[1]), reverse=True)
-    best_score, best_fans, best = scored[0]
-
-    if len(scored) > 1:
-        logger.debug(
-            "Desambiguacion: %d candidatos, elegido '%s' (%s fans, puntuacion %d)",
-            len(scored),
-            best.get("name"),
-            f"{best_fans:,}",
-            best_score,
-        )
-
-    return best
+    return _select(
+        candidates,
+        query,
+        name_of=lambda c: c.get("name", ""),
+        rank_of=lambda c: c.get("nb_fan", 0),
+        source="Deezer",
+    )
 
 
 def to_artist_data(record: dict, source_name: str = "deezer") -> ArtistData:

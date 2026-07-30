@@ -114,7 +114,8 @@ Keeping both is the honest way to have real data *and* a demonstrable feature.
 
 | | Simulated | Deezer | Spotify |
 |---|---|---|---|
-| Real artists | no | **yes** | **yes** |
+| Verified working | yes | yes | **not yet** |
+| Real artists | no | **yes** | yes |
 | Credentials | none | **none** | required |
 | Works in the browser | yes | yes (JSONP) | no |
 | History available now | 30 days | accumulates | accumulates |
@@ -172,10 +173,19 @@ correct answer rather than a failure.
 
 ### Real Spotify API (optional, terminal only)
 
-`api/spotify.py` implements the real Client Credentials Flow and is included as
-documented future work. It is not the project's active data path — it exists to
-demonstrate that the `StreamingClient` abstraction holds against a genuine
-implementation, which is the architectural point the interface is there to prove.
+> ⚠️ **Not verified against the live API.** This module is written but has never
+> been executed against Spotify, because the project has no credentials. The only
+> path actually exercised is its graceful fallback to the simulated source when
+> credentials are missing. The response shape it parses comes from Spotify's
+> documentation, not from a captured call — `tests/test_spotify.py` validates *our*
+> selection and conversion logic against that assumed shape, which is not the same
+> as proving the assumption holds.
+>
+> **For verified real data with no credentials, use `--source deezer`.**
+
+`api/spotify.py` implements the Client Credentials Flow. It also demonstrates that
+the `StreamingClient` abstraction holds against a second real implementation, which
+is the architectural point the interface exists to prove.
 
 It cannot be used from the public web page: a client secret cannot live in a
 page anyone can read. Enabling it in the terminal requires registering an app at
@@ -237,7 +247,7 @@ folk_analytics/
 │   └── json_store.py    # history and watchlist persistence
 └── reports/
     └── console.py       # report rendering
-tests/                   # 110 pytest tests
+tests/                   # 124 pytest tests
 tools/
 ├── build_web.py         # generates docs/index.html from the package
 └── web_template.html    # page template
@@ -254,7 +264,7 @@ logs/
 python -m pytest tests/ -v
 ```
 
-110 tests. The suite covers input validation, trend mathematics, persistence, the alert
+124 tests. The suite covers input validation, trend mathematics, persistence, the alert
 engine and the full agent flow, including edge cases: constant series, division by
 zero, odd-length windows, corrupt history files, retry exhaustion, and — for the real
 source — homonym disambiguation, API quota errors and malformed responses, all

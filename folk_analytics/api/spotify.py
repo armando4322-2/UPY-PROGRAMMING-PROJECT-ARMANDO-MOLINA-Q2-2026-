@@ -1,11 +1,17 @@
 """Cliente de la API real de Spotify (Client Credentials Flow).
 
-ESTADO: TRABAJO FUTURO
-----------------------
-La fuente activa del proyecto es `SimulatedClient`. Este modulo se conserva
-porque demuestra que la abstraccion `StreamingClient` aguanta frente a una
-implementacion real: ese es justamente el motivo de que la interfaz exista.
-Para activarlo hacen falta credenciales propias (ver `.env.example`).
+ESTADO: SIN VERIFICAR CONTRA LA API REAL
+----------------------------------------
+Este modulo esta escrito pero **nunca se ha ejecutado contra Spotify**,
+porque el proyecto no dispone de credenciales. Lo unico probado es que
+degrada correctamente a la fuente simulada cuando faltan.
+
+En concreto, la forma exacta de la respuesta de busqueda esta tomada de la
+documentacion de Spotify, no capturada de una llamada real. Los tests de
+`tests/test_spotify.py` validan *nuestra* logica de seleccion y conversion
+sobre esa forma supuesta; no demuestran que la suposicion sea correcta.
+
+Para datos reales verificados y sin credenciales, usa `DeezerClient`.
 
 Requiere `requests` y credenciales en variables de entorno o en un
 archivo `.env` (ver `.env.example`).
@@ -30,6 +36,7 @@ from folk_analytics.api.base import (
     StreamingAPIError,
     StreamingClient,
 )
+from folk_analytics.api.matching import select_best_match
 from folk_analytics.api.models import ArtistData, utcnow
 from folk_analytics.logging_setup import get_logger
 
@@ -57,13 +64,66 @@ def _load_dotenv_if_present() -> None:
         logger.debug("Credenciales cargadas desde .env (parser interno)")
 
 
+def to_artist_data(record: dict) -> ArtistData:
+    """Convierte un objeto artista de Spotify en un `ArtistData`."""
+    return ArtistData(
+        artist_id=record["id"],
+        name=record.get("name", "").strip() or "Desconocido",
+        followers=int((record.get("followers") or {}).get("total", 0) or 0),
+        monthly_listeners=0,  # no publicado por la API de Spotify
+        popularity=int(record.get("popularity", 0) or 0),
+        source="spotify",
+        captured_at=utcnow(),
+        unavailable_metrics=("monthly_listeners",),
+    )
+
+
+def parse_search_payload(payload: dict, query: str) -> ArtistData:
+    """Interpreta la respuesta de busqueda y elige el artista correcto.
+
+    Se mantiene independiente del transporte para poder probarla sin red y
+    sin credenciales. Aplica la misma desambiguacion que el cliente de
+    Deezer: sin ella, buscar un nombre compartido por varios artistas
+    devolveria el primero que Spotify decida listar.
+    """
+    if not isinstance(payload, dict):
+        raise StreamingAPIError("Spotify devolvio una respuesta con formato inesperado")
+
+    if "error" in payload and payload["error"]:
+        error = payload["error"]
+        message = error.get("message", "error desconocido") if isinstance(error, dict) else str(error)
+        raise StreamingAPIError(f"Spotify respondio con un error: {message}")
+
+    items = (payload.get("artists") or {}).get("items") or []
+    best = select_best_match(
+        items,
+        query,
+        name_of=lambda c: c.get("name", ""),
+        rank_of=lambda c: (c.get("followers") or {}).get("total", 0),
+        source="Spotify",
+    )
+    return to_artist_data(best)
+
+
 class SpotifyClient(StreamingClient):
     """Cliente contra la API oficial de Spotify."""
 
     source_name = "spotify"
 
-    def __init__(self, client_id: str | None = None, client_secret: str | None = None):
+    def __init__(
+        self,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        results_per_query: int = 10,
+    ):
+        """
+        Args:
+            results_per_query: cuantos candidatos pedir. Con uno solo la
+                desambiguacion es imposible y se acaba analizando al artista
+                equivocado sin enterarse.
+        """
         _load_dotenv_if_present()
+        self.results_per_query = results_per_query
 
         self.client_id = client_id or os.environ.get("SPOTIFY_CLIENT_ID", "")
         self.client_secret = client_secret or os.environ.get("SPOTIFY_CLIENT_SECRET", "")
@@ -131,7 +191,11 @@ class SpotifyClient(StreamingClient):
             response = requests.get(
                 f"{config.SPOTIFY_API_BASE}/search",
                 headers={"Authorization": f"Bearer {token}"},
-                params={"q": artist_name, "type": "artist", "limit": 1},
+                params={
+                    "q": artist_name,
+                    "type": "artist",
+                    "limit": self.results_per_query,
+                },
                 timeout=10,
             )
             response.raise_for_status()
@@ -139,26 +203,12 @@ class SpotifyClient(StreamingClient):
             logger.error("Fallo la consulta a Spotify: %s", exc)
             raise StreamingAPIError(f"Fallo la consulta a Spotify: {exc}") from exc
 
-        items = response.json().get("artists", {}).get("items", [])
-        if not items:
-            logger.error("Spotify no devolvio resultados para '%s'", artist_name)
-            raise ArtistNotFoundError(f"Artista no encontrado en Spotify: {artist_name!r}")
-
-        artist = items[0]
-        data = ArtistData(
-            artist_id=artist["id"],
-            name=artist["name"],
-            followers=artist.get("followers", {}).get("total", 0),
-            monthly_listeners=0,  # no disponible en la API publica
-            popularity=artist.get("popularity", 0),
-            source=self.source_name,
-            captured_at=utcnow(),
-            unavailable_metrics=("monthly_listeners",),
-        )
+        data = parse_search_payload(response.json(), artist_name)
 
         logger.info(
-            "Datos reales recibidos: %s (seguidores: %s, popularidad: %d)",
+            "Datos reales recibidos: %s (ID: %s, seguidores: %s, popularidad: %d)",
             data.name,
+            data.artist_id,
             f"{data.followers:,}",
             data.popularity,
         )

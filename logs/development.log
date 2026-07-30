@@ -357,3 +357,57 @@
                              and the simulated path still intact
 2026-07-30 05:02:00 — [INFO] Session 04 ended
 ────────────────────────────────────────────────────────────────────────────────
+
+
+────────────────────────────────────────────────────────────────────────────────
+ SESSION 05 — 2026-07-30 — Auditing the Spotify integration
+────────────────────────────────────────────────────────────────────────────────
+
+ AUDIT
+ -----
+2026-07-30 05:20:00 — [INFO] Author asked whether Spotify was connected
+2026-07-30 05:21:00 — [WARNING] Audit result: api/spotify.py has NEVER been executed
+                                against the live API. No credentials have ever
+                                existed in this project.
+2026-07-30 05:21:30 — [WARNING] The module had zero test coverage
+2026-07-30 05:22:00 — [WARNING] Only the failure path was ever exercised: graceful
+                                degradation to the simulated source when credentials
+                                are absent. That part does work.
+2026-07-30 05:22:30 — [WARNING] README said "implements the real Client Credentials
+                                Flow" — true of the code, but readable as "it works".
+                                Code that looks finished but is unverified is worse
+                                than code that is obviously incomplete.
+2026-07-30 05:23:00 — [WARNING] Latent defect found by inspection: fetch_artist used
+                                limit=1, the exact bug corrected in Deezer. It would
+                                analyse a homonym without ever signalling it.
+                                Unconfirmed, since it cannot be run.
+2026-07-30 05:24:00 — [INFO] Author decided to obtain credentials so it can be
+                             verified properly
+
+ PREPARATION FOR VERIFICATION
+ ----------------------------
+2026-07-30 05:26:00 — [INFO] api/matching.py — disambiguation extracted into a
+                             shared module
+2026-07-30 05:26:30 — [INFO] Rationale: Deezer and Spotify were about to solve the
+                             same problem twice. One criterion, one place, no drift.
+2026-07-30 05:27:00 — [INFO] Ordering documented: match quality first, popularity
+                             only as tiebreaker. Sorting by followers first would let
+                             a huge loosely-matching artist hijack the search for a
+                             smaller exact match.
+2026-07-30 05:27:30 — [INFO] Tiebreak made stable by including the original index, so
+                             results do not depend on iteration order
+2026-07-30 05:29:00 — [FIXED] spotify.py: limit raised from 1 to 10 and disambiguation
+                              applied. Parsing separated from transport so it can be
+                              tested without network or credentials.
+2026-07-30 05:31:00 — [INFO] tests/test_spotify.py — 14 tests (124 total)
+2026-07-30 05:31:30 — [INFO] Scope of those tests documented inside the file itself:
+                             the payloads are built from Spotify's documentation, not
+                             captured from a real call. They validate our logic
+                             against an assumed shape; they do not prove the shape is
+                             right. A test passing on a wrong assumption gives false
+                             confidence, so the limit is stated rather than implied.
+2026-07-30 05:32:00 — [INFO] README and module docstring now state plainly that the
+                             integration is unverified, and point to Deezer for
+                             verified real data
+2026-07-30 05:33:00 — [INFO] BLOCKED — awaiting credentials to run the real check
+────────────────────────────────────────────────────────────────────────────────
