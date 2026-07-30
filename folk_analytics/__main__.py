@@ -38,11 +38,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--source",
-        choices=["simulated", "spotify"],
+        choices=["simulated", "deezer", "spotify"],
         default="simulated",
         help=(
-            "fuente de datos. 'simulated' es la via oficial del proyecto; "
-            "'spotify' es trabajo futuro y requiere credenciales en .env"
+            "fuente de datos. 'simulated' trae historico completo y sirve para "
+            "demostrar la deteccion de tendencias; 'deezer' son datos reales sin "
+            "credenciales; 'spotify' son datos reales pero requiere credenciales "
+            "en .env (por defecto: simulated)"
         ),
     )
     parser.add_argument(
@@ -62,6 +64,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 def build_client(source: str):
     """Instancia el cliente de datos elegido, con degradacion elegante."""
+    if source == "deezer":
+        from folk_analytics.api.deezer import DeezerClient
+
+        return DeezerClient()
+
     if source == "spotify":
         from folk_analytics.api.spotify import SpotifyClient
 

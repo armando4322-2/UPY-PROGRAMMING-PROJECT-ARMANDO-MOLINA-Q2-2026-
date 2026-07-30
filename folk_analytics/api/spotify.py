@@ -153,6 +153,7 @@ class SpotifyClient(StreamingClient):
             popularity=artist.get("popularity", 0),
             source=self.source_name,
             captured_at=utcnow(),
+            unavailable_metrics=("monthly_listeners",),
         )
 
         logger.info(

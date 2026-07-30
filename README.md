@@ -72,6 +72,8 @@ python run.py                    # interactive menu
 python run.py --demo             # non-interactive demonstration
 python run.py -a "Novo Amor"     # analyse a single artist and exit
 python run.py --metric popularity --verbose
+
+python run.py -a "Bad Bunny" --source deezer      # real data, no credentials
 ```
 
 It also runs as a module: `python -m folk_analytics --demo`
@@ -105,7 +107,23 @@ It also runs as a module: `python -m folk_analytics --demo`
 The project programs against an interface (`StreamingClient`), never against a
 concrete implementation. Swapping data sources touches one line.
 
-### Simulated source (the project's data path)
+The project ships **two working sources** and they serve different purposes.
+The simulated one can demonstrate trend detection today; the real one cannot,
+because no public API returns the follower count an artist had thirty days ago.
+Keeping both is the honest way to have real data *and* a demonstrable feature.
+
+| | Simulated | Deezer | Spotify |
+|---|---|---|---|
+| Real artists | no | **yes** | **yes** |
+| Credentials | none | **none** | required |
+| Works in the browser | yes | yes (JSONP) | no |
+| History available now | 30 days | accumulates | accumulates |
+| Followers | yes | yes | yes |
+| Monthly listeners | yes | not published | not published |
+| Popularity | yes | not published | yes |
+| Albums | — | yes | — |
+
+### Simulated source (default)
 
 Folk Analytics runs on a **simulated streaming API**. This is a deliberate scope
 decision, not a shortcut: it keeps the project reproducible, offline, and free of
@@ -128,14 +146,39 @@ The simulated client also models real API behaviour: transient failures with
 exponential-backoff retries, artists absent from the catalog, and artists with no
 recorded activity.
 
-### Real Spotify API (future work)
+### Deezer — real artists, no credentials
+
+```bash
+python run.py -a "Natalia Lafourcade" --source deezer
+python run.py -a "Sufjan Stevens" --source deezer
+```
+
+Deezer's public API needs no key, no registration and no account. It publishes
+`nb_fan` (real followers) and `nb_album`.
+
+**Disambiguation matters more than it looks.** Searching `AURORA` and taking the
+first result returns a homonym with 2,486 followers instead of the Norwegian
+artist, who has 551,254 and appears sixth. `select_best_match` scores candidates
+by name match first and follower count only as a tiebreaker, so an exact match
+always beats a bigger but unrelated artist.
+
+**Two limitations, stated rather than hidden.** Deezer does not publish monthly
+listeners or a popularity index. Those appear as *not published* instead of `0`,
+because a zero would assert something false about the artist — each source
+declares its unavailable metrics and the report honours that. And since no public
+API offers retroactive history, the agent starts accumulating from its first run;
+until there are enough points the trend reads *insufficient data*, which is the
+correct answer rather than a failure.
+
+### Real Spotify API (optional, terminal only)
 
 `api/spotify.py` implements the real Client Credentials Flow and is included as
 documented future work. It is not the project's active data path — it exists to
 demonstrate that the `StreamingClient` abstraction holds against a genuine
 implementation, which is the architectural point the interface is there to prove.
 
-Enabling it requires registering an app at
+It cannot be used from the public web page: a client secret cannot live in a
+page anyone can read. Enabling it in the terminal requires registering an app at
 [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and
 copying `.env.example` to `.env`. Then: `python run.py --source spotify`
 
@@ -194,7 +237,7 @@ folk_analytics/
 │   └── json_store.py    # history and watchlist persistence
 └── reports/
     └── console.py       # report rendering
-tests/                   # 88 pytest tests
+tests/                   # 110 pytest tests
 tools/
 ├── build_web.py         # generates docs/index.html from the package
 └── web_template.html    # page template
@@ -211,9 +254,11 @@ logs/
 python -m pytest tests/ -v
 ```
 
-88 tests. The suite covers input validation, trend mathematics, persistence, the alert
+110 tests. The suite covers input validation, trend mathematics, persistence, the alert
 engine and the full agent flow, including edge cases: constant series, division by
-zero, odd-length windows, corrupt history files and retry exhaustion.
+zero, odd-length windows, corrupt history files, retry exhaustion, and — for the real
+source — homonym disambiguation, API quota errors and malformed responses, all
+against fixed payloads so the suite never touches the network.
 
 ## Configuration
 
@@ -239,7 +284,7 @@ including the audit that exposed the original trend-detection flaw.
 - Scheduled monitoring with notifications
 - Cross-artist comparison and genre ranking
 - Migrating the store to SQLite if the history grows large
-- Activating the real Spotify integration
+- Scheduled collection so real history builds without manual runs
 
 ---
 

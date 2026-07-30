@@ -193,8 +193,19 @@
 
     <div class="controls">
       <div class="field">
+        <label for="source">Fuente de datos</label>
+        <select id="source">
+          <option value="simulated">Simulada · con histórico</option>
+          <option value="deezer">Deezer · datos reales</option>
+        </select>
+      </div>
+      <div class="field" id="field-catalog">
         <label for="artist">Artista</label>
         <select id="artist"></select>
+      </div>
+      <div class="field hide" id="field-free">
+        <label for="artist-free">Artista</label>
+        <input type="text" id="artist-free" placeholder="Escribe cualquier artista real…" value="Natalia Lafourcade">
       </div>
       <div class="field">
         <label for="metric">Métrica</label>
@@ -225,12 +236,23 @@
       <canvas id="chart"></canvas>
     </div>
 
-    <div class="note">
-      <b>Sobre los datos:</b> la fuente es una API de streaming simulada. Es una decisión de
-      alcance deliberada: mantiene el proyecto reproducible y sin credenciales. La simulación
-      es <b>determinista</b> — para un artista y una fecha dados siempre devuelve el mismo
-      valor. Esa propiedad es justamente la que hace que las tendencias detectadas signifiquen
-      algo en lugar de medir ruido.
+    <div class="note" id="note-simulated">
+      <b>Fuente simulada.</b> Genera series temporales <b>deterministas</b>: para un artista y
+      una fecha dados siempre devuelve el mismo valor. Esa propiedad es la que hace que las
+      tendencias detectadas signifiquen algo en lugar de medir ruido. Trae 30 días de histórico
+      desde el primer momento, así que sirve para demostrar la detección de tendencias.
+    </div>
+    <div class="note hide" id="note-deezer">
+      <b>Datos reales de Deezer.</b> Seguidores y álbumes de artistas de verdad, sin
+      credenciales ni registro.
+      <br><br>
+      <b>Dos limitaciones honestas.</b> Deezer no publica oyentes mensuales ni índice de
+      popularidad: esas métricas aparecen como «no publicado» en lugar de como cero, porque
+      un cero afirmaría algo falso sobre el artista. Y ninguna API pública devuelve los
+      seguidores que alguien tenía hace treinta días, así que el histórico
+      <b>se acumula desde tu primera consulta</b>. Hasta que haya suficientes puntos, la
+      tendencia dirá «datos insuficientes» — que es la respuesta correcta, no un fallo.
+      Tu histórico queda guardado en este navegador: vuelve otro día y verás cómo crece.
     </div>
   </div>
 </section>
@@ -368,14 +390,34 @@ from folk_analytics.logging_setup import setup_logging
 
 setup_logging(level=logging.INFO)
 
+from folk_analytics.storage.json_store import SnapshotStore
+
+# Un unico almacen compartido por todos los agentes. Si cada uno tuviera el
+# suyo, las copias en memoria divergirian del archivo en disco.
+_store = SnapshotStore()
 _agents = {}
 _log_pos = [0]
 
 
 def _agent(metric):
     if metric not in _agents:
-        _agents[metric] = FolkAnalyticsAgent(metric=metric)
+        _agents[metric] = FolkAnalyticsAgent(metric=metric, store=_store)
     return _agents[metric]
+
+
+def _deezer_agent(payload, metric):
+    """Agente alimentado con una respuesta de Deezer ya descargada.
+
+    El navegador no puede llamar a Deezer directamente porque la API no
+    envia cabeceras CORS; es JavaScript quien la obtiene por JSONP y la
+    entrega aqui. El parseo y la desambiguacion son exactamente los mismos
+    que usa la version de consola.
+    """
+    from folk_analytics.api.deezer import PrefetchedDeezerClient
+
+    return FolkAnalyticsAgent(
+        client=PrefetchedDeezerClient(payload), store=_store, metric=metric
+    )
 
 
 def _new_logs(max_lines=60):
@@ -453,6 +495,58 @@ def web_analyze(name, metric):
     })
 
 
+def web_analyze_deezer(name, payload_json, metric):
+    """Analiza un artista real a partir de la respuesta de Deezer."""
+    _new_logs()
+    try:
+        payload = json.loads(payload_json)
+        agent = _deezer_agent(payload, metric)
+        result = agent.analyze(name)
+    except InvalidInputError as exc:
+        return json.dumps({"ok": False, "kind": "input",
+                           "error": str(exc), "logs": _new_logs()})
+    except ArtistNotFoundError as exc:
+        return json.dumps({"ok": False, "kind": "notfound",
+                           "error": str(exc), "logs": _new_logs()})
+    except StreamingAPIError as exc:
+        return json.dumps({"ok": False, "kind": "api",
+                           "error": str(exc), "logs": _new_logs()})
+
+    history = _store.history(result.snapshot.artist_id, days=config.ANALYSIS_WINDOW_DAYS)
+    return json.dumps({
+        "ok": True,
+        "report": result.to_report(),
+        "logs": _new_logs(),
+        "artist": result.snapshot.name,
+        "metric": metric,
+        "labels": [s.captured_at.strftime("%d %b %H:%M") for s in history],
+        "values": [getattr(s, metric) for s in history],
+        "kpi": {
+            "current": getattr(result.snapshot, metric),
+            "change_pct": round(result.trend.change_pct, 1),
+            "direction": result.trend.direction.value,
+            "confidence": result.trend.confidence_label,
+            "r2": round(result.trend.r_squared, 2),
+            "points": result.trend.sample_size,
+            "avg": round(result.summary.average),
+            "albums": result.snapshot.albums,
+            "available": result.snapshot.is_available(metric),
+        },
+        "alerts": [{"level": a.level.value, "message": a.message} for a in result.alerts],
+    })
+
+
+def web_export_store():
+    """Serializa el historico para que el navegador pueda conservarlo.
+
+    El sistema de archivos de Pyodide vive en memoria y desaparece al
+    recargar. Sin esto, los datos reales acumulados se perderian en cada
+    visita y el historico nunca podria crecer.
+    """
+    path = config.SNAPSHOT_FILE
+    return path.read_text(encoding="utf-8") if path.exists() else "{}"
+
+
 def web_demo():
     _new_logs()
     from folk_analytics.cli import run_demo
@@ -521,7 +615,9 @@ function renderKpis(k, alerts){
               : k.direction.includes("DECA") ? "down" : "flat";
   $("kpis").innerHTML = `
     <div class="kpi"><div class="k">Valor actual</div>
-      <div class="v">${k.current.toLocaleString("es-MX")}</div></div>
+      <div class="v">${k.available === false
+        ? "<span style='font-size:15px;color:var(--muted)'>no publicado</span>"
+        : k.current.toLocaleString("es-MX")}</div></div>
     <div class="kpi"><div class="k">Cambio en la ventana</div>
       <div class="v ${cls}">${arrow} ${k.change_pct > 0 ? "+" : ""}${k.change_pct}%</div></div>
     <div class="kpi"><div class="k">Tendencia</div>
@@ -583,17 +679,102 @@ function renderChart(labels, values, artist, metric){
   });
 }
 
+/* ═══════════════════════ Deezer via JSONP ═══════════════════════ */
+/* La API de Deezer no envia cabeceras CORS, asi que fetch() queda bloqueado
+   por el navegador. Deezer si soporta JSONP, que sortea la restriccion
+   inyectando un <script>. La respuesta se entrega despues al codigo Python,
+   que la interpreta con la misma logica que la version de consola.        */
+const DEEZER_SEARCH = "https://api.deezer.com/search/artist";
+
+function jsonp(url, timeoutMs = 12000){
+  return new Promise((resolve, reject) => {
+    const cb = "dzcb_" + Math.random().toString(36).slice(2);
+    const script = document.createElement("script");
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      delete window[cb];
+      script.remove();
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("Deezer no respondió a tiempo"));
+    }, timeoutMs);
+
+    window[cb] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("No se pudo contactar con Deezer (¿sin conexión?)"));
+    };
+
+    script.src = `${url}&output=jsonp&callback=${cb}`;
+    document.head.appendChild(script);
+  });
+}
+
+/* ═══════════════════════ Persistencia del histórico ═══════════════════════ */
+/* El sistema de archivos de Pyodide vive en memoria y se borra al recargar.
+   Guardar el histórico en el navegador es lo que permite que los datos reales
+   se acumulen entre visitas y las tendencias lleguen a ser calculables.     */
+const STORE_KEY = "folk_analytics_snapshots_v1";
+
+function saveStore(){
+  try{
+    localStorage.setItem(STORE_KEY, py.runPython("web_export_store()"));
+  }catch(err){
+    console.warn("No se pudo guardar el histórico:", err);
+  }
+}
+
+function restoreStore(){
+  try{
+    const saved = localStorage.getItem(STORE_KEY);
+    if(saved){
+      py.FS.writeFile("/project/data/snapshots.json", saved, { encoding: "utf8" });
+      return true;
+    }
+  }catch(err){
+    console.warn("No se pudo restaurar el histórico:", err);
+  }
+  return false;
+}
+
 /* ═══════════════════════ Acciones ═══════════════════════ */
+function currentArtist(){
+  return $("source").value === "deezer"
+    ? $("artist-free").value.trim()
+    : $("artist").value;
+}
+
 async function analyze(){
-  busy(true);
-  const name   = $("artist").value;
+  const source = $("source").value;
+  const name   = currentArtist();
   const metric = $("metric").value;
-  write(`$ python run.py -a "${name}" --metric ${metric}\n`);
+
+  if(!name){
+    write("\n[ERROR] Escribe el nombre de un artista.\n");
+    return;
+  }
+
+  busy(true);
+  write(`$ python run.py -a "${name}" --source ${source} --metric ${metric}\n`);
 
   try{
-    const data = JSON.parse(await py.runPythonAsync(
-      `web_analyze(${JSON.stringify(name)}, ${JSON.stringify(metric)})`
-    ));
+    let data;
+
+    if(source === "deezer"){
+      write("  Consultando la API pública de Deezer…\n", {append:true});
+      const url  = `${DEEZER_SEARCH}?q=${encodeURIComponent(name)}&limit=10`;
+      const raw  = await jsonp(url);
+      data = JSON.parse(await py.runPythonAsync(
+        `web_analyze_deezer(${JSON.stringify(name)}, ` +
+        `${JSON.stringify(JSON.stringify(raw))}, ${JSON.stringify(metric)})`
+      ));
+    }else{
+      data = JSON.parse(await py.runPythonAsync(
+        `web_analyze(${JSON.stringify(name)}, ${JSON.stringify(metric)})`
+      ));
+    }
 
     if(!data.ok){
       write(data.logs + `\n[ERROR] ${data.error}\n`, {append:true});
@@ -604,15 +785,39 @@ async function analyze(){
 
     write(data.logs + data.report, {append:true});
     renderKpis(data.kpi, data.alerts);
-    renderChart(data.labels, data.values, data.artist, data.metric);
+
+    if(data.values.length >= 2){
+      renderChart(data.labels, data.values, data.artist, data.metric);
+    }else{
+      $("chart-panel").classList.add("hide");
+    }
+    saveStore();
   }catch(err){
-    write(`\n[ERROR] Fallo inesperado: ${err}\n`, {append:true});
+    write(`\n[ERROR] ${err.message || err}\n`, {append:true});
+    $("kpis").innerHTML = "";
+    $("chart-panel").classList.add("hide");
   }finally{
     busy(false);
   }
 }
 
+function switchSource(){
+  const isDeezer = $("source").value === "deezer";
+  $("field-catalog").classList.toggle("hide", isDeezer);
+  $("field-free").classList.toggle("hide", !isDeezer);
+  $("note-simulated").classList.toggle("hide", isDeezer);
+  $("note-deezer").classList.toggle("hide", !isDeezer);
+  $("demo").disabled = isDeezer;
+  $("demo").title = isDeezer
+    ? "La demostración usa la fuente simulada"
+    : "";
+}
+
 async function demo(){
+  if($("source").value === "deezer"){
+    $("source").value = "simulated";
+    switchSource();
+  }
   busy(true);
   write("$ python run.py --demo\n");
   try{
@@ -634,6 +839,7 @@ async function reset(){
     const data = JSON.parse(await py.runPythonAsync("web_reset()"));
     write(data.logs + "\n  Histórico borrado. La próxima consulta lo reconstruirá.\n",
           {append:true});
+    try{ localStorage.removeItem(STORE_KEY); }catch(_){}
     $("kpis").innerHTML = "";
     $("chart-panel").classList.add("hide");
   }finally{
@@ -690,6 +896,8 @@ async function boot(){
     py.FS.mkdirTree("/project/data");
     py.FS.mkdirTree("/project/logs");
 
+    const restored = restoreStore();
+
     setBoot(78, "Inicializando el agente…");
     await py.runPythonAsync(BRIDGE);
 
@@ -709,15 +917,21 @@ async function boot(){
       .map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
     sel.value = "Novo Amor";
 
-    $("run").onclick   = analyze;
-    $("demo").onclick  = demo;
-    $("reset").onclick = reset;
+    $("run").onclick     = analyze;
+    $("demo").onclick    = demo;
+    $("reset").onclick   = reset;
+    $("source").onchange = switchSource;
+    $("artist-free").addEventListener("keydown", e => {
+      if(e.key === "Enter") analyze();
+    });
+    switchSource();
 
     write(
       "  Folk Analytics " + info.version + " listo.\n" +
       "  Intérprete: CPython " + info.python + " sobre WebAssembly.\n" +
       "  Módulos cargados: " + Object.keys(PYTHON_SOURCES).length + "\n\n" +
-      "  Elige un artista y pulsa Analizar."
+      "  Elige un artista y pulsa Analizar." +
+      (restored ? "\n  Histórico previo restaurado desde este navegador." : "")
     );
 
     setBoot(100, "Listo");

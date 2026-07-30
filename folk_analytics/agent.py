@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from folk_analytics import config
-from folk_analytics.analytics.alerts import Alert, evaluate_alerts
+from folk_analytics.analytics.alerts import Alert, AlertLevel, evaluate_alerts
 from folk_analytics.analytics.metrics import MetricsSummary, summarize
 from folk_analytics.analytics.trends import TrendResult, analyze_artist_trend
 from folk_analytics.api.base import (
@@ -121,6 +121,14 @@ class FolkAnalyticsAgent:
         name = validate_artist_name(artist_name)
         snapshot = self.client.fetch_artist(name)
 
+        if not snapshot.is_available(self.metric):
+            logger.warning(
+                "La fuente '%s' no publica la metrica '%s'; el analisis carece "
+                "de sentido con esta combinacion",
+                self.client.source_name,
+                self.metric,
+            )
+
         # 2. PROCESAR
         if seed_if_empty and not self.store.has_history(
             snapshot.artist_id, config.MIN_SNAPSHOTS_FOR_TREND
@@ -142,6 +150,20 @@ class FolkAnalyticsAgent:
             metric=self.metric,
             has_activity=snapshot.has_activity,
         )
+
+        if not snapshot.is_available(self.metric):
+            alerts.insert(
+                0,
+                Alert(
+                    level=AlertLevel.WARNING,
+                    artist_name=snapshot.name,
+                    message=(
+                        f"La fuente '{self.client.source_name}' no publica "
+                        f"'{self.metric}': el analisis no es interpretable"
+                    ),
+                    metric=self.metric,
+                ),
+            )
 
         logger.info("Sesion %s completada correctamente", session_id)
 

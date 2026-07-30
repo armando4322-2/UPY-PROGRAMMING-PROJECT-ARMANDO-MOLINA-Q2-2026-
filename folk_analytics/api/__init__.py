@@ -2,7 +2,8 @@
 
 Expone una interfaz unica (`StreamingClient`) implementada por:
   - `SimulatedClient`: datos sinteticos coherentes, sin red ni credenciales.
-  - `SpotifyClient`  : API real de Spotify (requiere credenciales).
+  - `DeezerClient`   : datos reales sin credenciales (fuente real por defecto).
+  - `SpotifyClient`  : datos reales con credenciales (opcional, solo consola).
 
 El resto del proyecto programa contra la interfaz, nunca contra una
 implementacion concreta.
@@ -14,6 +15,7 @@ from folk_analytics.api.base import (
     StreamingClient,
 )
 from folk_analytics.api.models import ArtistData
+from folk_analytics.api.deezer import DeezerClient
 from folk_analytics.api.simulated import SimulatedClient
 
 __all__ = [
@@ -22,4 +24,5 @@ __all__ = [
     "StreamingAPIError",
     "StreamingClient",
     "SimulatedClient",
+    "DeezerClient",
 ]

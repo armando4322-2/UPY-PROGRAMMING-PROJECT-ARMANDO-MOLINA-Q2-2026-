@@ -20,6 +20,13 @@ class ArtistData:
         popularity       : indice 0-100 de popularidad relativa.
         source           : nombre del cliente que produjo el dato.
         captured_at      : momento de captura, en UTC.
+        albums           : numero de albumes publicados. Solo algunas fuentes
+                           lo exponen; 0 significa "no publicado".
+
+    Convencion importante: un 0 en una metrica puede significar dos cosas muy
+    distintas —que el valor real sea cero, o que la fuente no publique ese
+    dato—. Por eso `unavailable_metrics` declara explicitamente cuales no
+    estan disponibles, y el reporte las distingue en lugar de mostrar "0".
     """
 
     artist_id: str
@@ -29,6 +36,8 @@ class ArtistData:
     popularity: int
     source: str
     captured_at: datetime
+    albums: int = 0
+    unavailable_metrics: tuple[str, ...] = ()
 
     def to_dict(self) -> dict:
         """Serializa a un diccionario apto para JSON."""
@@ -38,12 +47,25 @@ class ArtistData:
 
     @classmethod
     def from_dict(cls, data: dict) -> "ArtistData":
-        """Reconstruye una instancia a partir de un diccionario JSON."""
-        payload = dict(data)
-        captured = payload["captured_at"]
+        """Reconstruye una instancia a partir de un diccionario JSON.
+
+        Tolera instantaneas guardadas por versiones anteriores, que no
+        incluian los campos anadidos despues.
+        """
+        payload = {k: v for k, v in data.items() if k in cls.__dataclass_fields__}
+
+        captured = payload.get("captured_at")
         if isinstance(captured, str):
             payload["captured_at"] = datetime.fromisoformat(captured)
+
+        if "unavailable_metrics" in payload:
+            payload["unavailable_metrics"] = tuple(payload["unavailable_metrics"])
+
         return cls(**payload)
+
+    def is_available(self, metric: str) -> bool:
+        """True si la fuente publica realmente esa metrica."""
+        return metric not in self.unavailable_metrics
 
     @property
     def has_activity(self) -> bool:

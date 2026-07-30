@@ -275,3 +275,85 @@
 2026-07-29 22:30:00 — [INFO] README updated: live demo link, CI badge, web section
 2026-07-29 22:31:00 — [INFO] Session 03 ended
 ────────────────────────────────────────────────────────────────────────────────
+
+
+────────────────────────────────────────────────────────────────────────────────
+ SESSION 04 — 2026-07-30 — Real artist data (v2.2.0)
+────────────────────────────────────────────────────────────────────────────────
+
+ RESEARCH — which API can actually work here
+ -------------------------------------------
+2026-07-30 04:35:00 — [INFO] Author asked for the API to work with real artists
+2026-07-30 04:36:00 — [INFO] Candidates tested against the live endpoints rather
+                             than assumed from documentation
+2026-07-30 04:37:00 — [INFO] Deezer: no credentials, publishes nb_fan and nb_album
+2026-07-30 04:38:00 — [WARNING] Deezer sends no Access-Control-Allow-Origin header,
+                                so browsers block direct fetch() calls
+2026-07-30 04:38:30 — [INFO]    Deezer does support JSONP — verified working. That
+                                makes it usable from the public page after all.
+2026-07-30 04:39:00 — [INFO] MusicBrainz: CORS enabled but publishes no metrics,
+                             only metadata — not useful for trend analysis
+2026-07-30 04:40:00 — [WARNING] Search quality problem found while testing: querying
+                                "AURORA" with limit=1 returns a homonym with 2,486
+                                followers. The intended artist has 551,254 and comes
+                                sixth. Taking the first result would have silently
+                                analysed the wrong artist.
+
+ DECISIONS
+ ---------
+2026-07-30 04:42:00 — [INFO] Author chose: both sources coexist
+2026-07-30 04:42:30 — [INFO] Rationale — no public API returns retroactive follower
+                             counts, so a real source cannot demonstrate trend
+                             detection today. Removing the simulation would mean
+                             the project's main feature shows "insufficient data"
+                             for days. Keeping both gives real data AND a
+                             demonstrable feature, without pretending either is
+                             something it is not.
+2026-07-30 04:43:00 — [INFO] Rejected: backfilling real history with estimates.
+                             Presenting invented past figures next to measured ones
+                             is exactly what invalidates an analysis.
+2026-07-30 04:43:30 — [INFO] Spotify stays terminal-only: a client secret cannot
+                             live in a page anyone can read
+
+ IMPLEMENTATION
+ --------------
+2026-07-30 04:45:00 — [INFO] api/deezer.py — real source, stdlib urllib only, so the
+                             core keeps its zero-dependency property
+2026-07-30 04:46:00 — [INFO] select_best_match() scores candidates by name match
+                             first and follower count only as a tiebreaker, so an
+                             exact match beats a larger but unrelated artist
+2026-07-30 04:46:30 — [INFO] normalize() strips accents and equates "&" with "and",
+                             the most common mismatch between how users type an
+                             artist and how Deezer registers it
+2026-07-30 04:48:00 — [INFO] ArtistData gained `albums` and `unavailable_metrics`.
+                             from_dict() ignores unknown keys so snapshots written
+                             by earlier versions still load.
+2026-07-30 04:49:00 — [INFO] Key modelling decision: sources now DECLARE which
+                             metrics they do not publish. Showing "0" monthly
+                             listeners would assert the artist has none, which is
+                             false. The report prints "not published by this source"
+                             and the agent raises a warning if the selected metric
+                             is one the source does not provide.
+2026-07-30 04:51:00 — [INFO] parse_search_payload() kept independent of transport so
+                             terminal (urllib) and web (JSONP) share identical
+                             disambiguation logic and cannot drift apart
+2026-07-30 04:52:00 — [INFO] PrefetchedDeezerClient — same client fed a response
+                             already downloaded by JavaScript
+2026-07-30 04:54:00 — [INFO] 22 tests added against fixed payloads, including the
+                             real AURORA response — 110 tests total, still offline
+2026-07-30 04:56:00 — [INFO] Web: source selector, free-text artist field for real
+                             queries, JSONP bridge
+2026-07-30 04:57:00 — [WARNING] Pyodide's filesystem lives in memory and is wiped on
+                                reload, so accumulated real history would be lost on
+                                every visit and could never grow
+2026-07-30 04:57:30 — [FIXED]   History is exported to browser storage after each
+                                run and restored on boot. Real data now accumulates
+                                across visits, which is the only way trends can ever
+                                become computable with a real source.
+2026-07-30 04:58:00 — [INFO] Single shared SnapshotStore across all agents; separate
+                             instances would have diverged from the file on disk
+2026-07-30 05:00:00 — [INFO] Bridge verified end to end: disambiguation, unavailable
+                             metrics, unknown artist, quota errors, history export,
+                             and the simulated path still intact
+2026-07-30 05:02:00 — [INFO] Session 04 ended
+────────────────────────────────────────────────────────────────────────────────

@@ -50,6 +50,18 @@ def _field(label: str, value: str) -> str:
     return f"  {label:<22}: {value}"
 
 
+def _metric_field(snapshot: ArtistData, label: str, metric: str, suffix: str = "") -> str:
+    """Formatea una metrica distinguiendo el cero real del dato no publicado.
+
+    Mostrar "0" cuando la fuente simplemente no publica el dato afirmaria
+    algo falso sobre el artista. Cada fuente declara que metricas no expone
+    y aqui se refleja tal cual.
+    """
+    if not snapshot.is_available(metric):
+        return _field(label, "no publicado por esta fuente")
+    return _field(label, f"{getattr(snapshot, metric):,}{suffix}")
+
+
 def render_sparkline(values: list[float], width: int = 30) -> str:
     """Dibuja una mini-grafica de una linea con la serie de valores."""
     if not values:
@@ -101,15 +113,11 @@ def render_report(
 
     lines.append(_line(LIGHT))
     lines.append("  METRICAS ACTUALES")
-    lines.append(_field("Seguidores", f"{snapshot.followers:,}"))
-    if snapshot.monthly_listeners:
-        lines.append(_field("Oyentes mensuales", f"{snapshot.monthly_listeners:,}"))
-    elif snapshot.source == "spotify":
-        # La API publica de Spotify no expone oyentes mensuales.
-        lines.append(_field("Oyentes mensuales", "no publicado por la fuente"))
-    else:
-        lines.append(_field("Oyentes mensuales", "0"))
-    lines.append(_field("Popularidad", f"{snapshot.popularity}/100"))
+    lines.append(_metric_field(snapshot, "Seguidores", "followers"))
+    lines.append(_metric_field(snapshot, "Oyentes mensuales", "monthly_listeners"))
+    lines.append(_metric_field(snapshot, "Popularidad", "popularity", suffix="/100"))
+    if snapshot.albums:
+        lines.append(_field("Albumes publicados", f"{snapshot.albums:,}"))
 
     lines.append(_line(LIGHT))
     lines.append(f"  HISTORICO ({metric})")
