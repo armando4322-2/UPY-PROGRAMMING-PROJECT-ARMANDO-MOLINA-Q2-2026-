@@ -39,9 +39,15 @@ def normalize(text: str) -> str:
     text = text.casefold().strip()
     text = text.replace("&", " and ").replace(" y ", " and ")
 
-    # La puntuacion es la otra fuente habitual de desajuste: el usuario
-    # escribe "Tyler The Creator" y el catalogo registra "Tyler, The Creator".
-    for ch in ",.;:!?'\u2019\"-_/\\()[]":
+    # Los apostrofos se eliminan sin dejar hueco: "El De Las R's" y
+    # "El De Las Rs" son el mismo artista, y sustituirlos por un espacio
+    # daria "r s", que ya no coincide.
+    for ch in "'\u2019\u02bc`":
+        text = text.replace(ch, "")
+
+    # El resto de la puntuacion si pasa a espacio, porque suele separar
+    # palabras: "Tyler, The Creator" frente a "Tyler The Creator".
+    for ch in ",.;:!?\"-_/\\()[]":
         text = text.replace(ch, " ")
 
     return " ".join(text.split())

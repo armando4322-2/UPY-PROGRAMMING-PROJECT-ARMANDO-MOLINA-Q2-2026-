@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import random
 import time
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 
 from folk_analytics import config
 from folk_analytics.api.base import (

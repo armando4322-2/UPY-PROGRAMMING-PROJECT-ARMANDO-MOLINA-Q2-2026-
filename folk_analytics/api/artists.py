@@ -17,8 +17,6 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-from folk_analytics import config
-
 CATALOG_FILE = Path(__file__).resolve().parent.parent / "data" / "catalog.json"
 
 #: Nombres de pais para las descripciones. Solo los presentes en el catalogo.

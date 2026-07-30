@@ -37,17 +37,27 @@ import urllib.parse
 import urllib.request
 
 from folk_analytics import config
-from folk_analytics.api.base import (
-    ArtistNotFoundError,
-    StreamingAPIError,
-    StreamingClient,
-)
+from folk_analytics.api.base import StreamingAPIError, StreamingClient
 from folk_analytics.api.matching import match_score, normalize
 from folk_analytics.api.matching import select_best_match as _select
 from folk_analytics.api.models import ArtistData, Track, utcnow
 from folk_analytics.logging_setup import get_logger
 
 logger = get_logger("api.deezer")
+
+#: Interfaz publica del modulo. `match_score` y `normalize` se reexportan a
+#: proposito: viven en api/matching.py, pero forman parte de lo que este
+#: modulo ofrece y los tests los importan desde aqui.
+__all__ = [
+    "DeezerClient",
+    "PrefetchedDeezerClient",
+    "match_score",
+    "normalize",
+    "parse_search_payload",
+    "parse_top_tracks",
+    "select_best_match",
+    "to_artist_data",
+]
 
 SEARCH_URL = "https://api.deezer.com/search/artist"
 TOP_TRACKS_URL = "https://api.deezer.com/artist/{artist_id}/top"

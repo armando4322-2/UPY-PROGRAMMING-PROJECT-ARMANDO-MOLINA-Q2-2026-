@@ -93,7 +93,10 @@ def main(argv: list[str] | None = None) -> int:
 
         return run_demo(agent)
 
-    if args.artist:
+    # Se compara contra None y no por veracidad: `-a ""` es una entrada
+    # invalida que debe reportarse como tal, no caer al menu interactivo y
+    # quedarse esperando a que el usuario teclee algo.
+    if args.artist is not None:
         try:
             print(agent.analyze(args.artist).to_report())
         except InvalidInputError as exc:

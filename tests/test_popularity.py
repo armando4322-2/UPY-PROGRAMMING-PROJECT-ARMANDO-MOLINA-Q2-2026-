@@ -1,7 +1,5 @@
 """Tests del indice de popularidad derivado."""
 
-import pytest
-
 from folk_analytics.analytics.popularity import (
     INDEX_MAX,
     SOURCE_RANK_MAX,

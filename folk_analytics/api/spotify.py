@@ -44,7 +44,7 @@ import urllib.parse
 import urllib.request
 
 from folk_analytics import config
-from folk_analytics.api.base import ArtistNotFoundError, StreamingAPIError
+from folk_analytics.api.base import StreamingAPIError
 from folk_analytics.api.matching import select_best_match
 from folk_analytics.logging_setup import get_logger
 

@@ -6,8 +6,6 @@ terminar por una excepcion no controlada a causa de lo que se teclee.
 
 from __future__ import annotations
 
-import sys
-
 from folk_analytics import __version__, config
 from folk_analytics.agent import FolkAnalyticsAgent, InvalidInputError
 from folk_analytics.api.base import ArtistNotFoundError, StreamingAPIError
