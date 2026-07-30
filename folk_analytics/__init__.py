@@ -12,7 +12,7 @@ Institucion : Universidad Politecnica de Yucatan (UPY)
 Periodo     : Q2 2026
 """
 
-__version__ = "2.4.0"
+__version__ = "2.5.0"
 __author__ = "Armando Karin Molina Marrufo"
 
 from folk_analytics.agent import FolkAnalyticsAgent

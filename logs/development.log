@@ -575,3 +575,69 @@
 2026-07-30 10:45:00 — [INFO] 19 tests added (157 total)
 2026-07-30 10:50:00 — [INFO] Session 07 ended
 ────────────────────────────────────────────────────────────────────────────────
+
+
+────────────────────────────────────────────────────────────────────────────────
+ SESSION 08 — 2026-07-30 — Live stats: no empty fields (v2.5.0)
+────────────────────────────────────────────────────────────────────────────────
+
+ THE COMPLAINT, AND WHY IT WAS RIGHT
+ -----------------------------------
+2026-07-30 11:00:00 — [INFO] Author: the real source still shows empty fields, and
+                             if the main feature is half-working it undermines
+                             everything else built around it
+2026-07-30 11:01:00 — [INFO] Agreed. "no publicado por esta fuente" appearing twice in
+                             the main report is a hole, not a disclaimer.
+
+ RESEARCH BEFORE PROMISING ANYTHING
+ ----------------------------------
+2026-07-30 11:05:00 — [INFO] Re-checked Spotify with valid credentials in case the
+                             403 was something the author could toggle. Body is a
+                             bare {"error":{"status":403,"message":"Forbidden"}} —
+                             no development-mode hint. Not fixable from the dashboard.
+2026-07-30 11:07:00 — [INFO] Last.fm requires an API key, which would end up visible
+                             in a public browser page. Rejected.
+2026-07-30 11:09:00 — [INFO] FOUND IT: Deezer publishes `rank` per track, 0-1,000,000,
+                             real and comparable across artists. Verified:
+                               Caifanes      mean rank 564,488
+                               Taylor Swift  mean rank 855,255
+                             Enough signal to build a genuine popularity index.
+
+ WHAT WAS BUILT
+ --------------
+2026-07-30 11:15:00 — [INFO] analytics/popularity.py — index = mean(top-10 rank)/10,000
+2026-07-30 11:16:00 — [INFO] Mean, not maximum, and the reason is documented: one viral
+                             hit would spike the maximum and misdescribe an artist whose
+                             remaining catalogue is barely played
+2026-07-30 11:17:00 — [INFO] Lives in analytics/, not api/: it is a derived metric, not
+                             something a source handed us
+2026-07-30 11:18:00 — [INFO] Labelled as CALCULATED everywhere it appears — report, web,
+                             README. It is not a platform metric and not a play count,
+                             and presenting it as either would misinform.
+2026-07-30 11:22:00 — [INFO] Tracks are now fetched during PERCEIVE rather than ACT: the
+                             index derives from them, so it has to be part of the
+                             snapshot that gets stored. Otherwise popularity could never
+                             become a time series.
+2026-07-30 11:24:00 — [INFO] The daily collector computes it too — without that the
+                             history would only ever accumulate followers
+2026-07-30 11:28:00 — [INFO] Metrics no source publishes are now REMOVED from the report
+                             instead of printed as "no publicado". A shorter report that
+                             is entirely true beats a longer one with holes.
+2026-07-30 11:30:00 — [INFO] Added in their place, both real: album count and top-10
+                             reach (the raw mean rank the index derives from, shown so
+                             the calculation is auditable)
+2026-07-30 11:33:00 — [INFO] display_name separated from source_name. The identifier
+                             stored in every snapshot stays 'deezer'; renaming it would
+                             have orphaned the history already collected.
+2026-07-30 11:35:00 — [INFO] The metric selector now adapts per source: offering a
+                             metric the source does not publish let the user pick an
+                             empty analysis
+2026-07-30 11:40:00 — [WARNING] Self-inflicted bug while editing: a scripted replace ran
+                                twice against the same first match, duplicating fields in
+                                one function and leaving the other untouched
+2026-07-30 11:41:00 — [FIXED]   Caught by verifying the bridge against the live API
+                                rather than assuming the edit landed
+2026-07-30 11:45:00 — [INFO] 14 tests added for the index (171 total), including the real
+                             captured ranks for Caifanes and Taylor Swift
+2026-07-30 11:47:00 — [INFO] Session 08 ended
+────────────────────────────────────────────────────────────────────────────────

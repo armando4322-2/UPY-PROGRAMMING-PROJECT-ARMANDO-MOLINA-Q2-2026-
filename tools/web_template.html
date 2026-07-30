@@ -249,7 +249,7 @@
         <label for="source">Fuente de datos</label>
         <select id="source">
           <option value="simulated">Simulada · con histórico</option>
-          <option value="deezer">Deezer · datos reales</option>
+          <option value="deezer">Live stats · datos reales</option>
         </select>
       </div>
       <div class="field" id="field-catalog">
@@ -266,11 +266,7 @@
       </div>
       <div class="field">
         <label for="metric">Métrica</label>
-        <select id="metric">
-          <option value="followers">followers</option>
-          <option value="monthly_listeners">monthly_listeners</option>
-          <option value="popularity">popularity</option>
-        </select>
+        <select id="metric"></select>
       </div>
       <button id="run">Analizar</button>
       <button id="demo" class="ghost">Demo completa</button>
@@ -318,16 +314,21 @@
       desde el primer momento, así que sirve para demostrar la detección de tendencias.
     </div>
     <div class="note hide" id="note-deezer">
-      <b>Datos reales de Deezer.</b> Seguidores y álbumes de artistas de verdad, sin
-      credenciales ni registro.
+      <b>Live stats · datos reales.</b> Cada métrica procede de la fuente que realmente la
+      publica: <b>seguidores y álbumes</b> de Deezer, <b>fotos e identificadores</b> de
+      Spotify, <b>país y géneros</b> de MusicBrainz.
       <br><br>
-      <b>Dos limitaciones honestas.</b> Deezer no publica oyentes mensuales ni índice de
-      popularidad: esas métricas aparecen como «no publicado» en lugar de como cero, porque
-      un cero afirmaría algo falso sobre el artista. Y ninguna API pública devuelve los
-      seguidores que alguien tenía hace treinta días, así que el histórico
-      <b>se acumula desde tu primera consulta</b>. Hasta que haya suficientes puntos, la
-      tendencia dirá «datos insuficientes» — que es la respuesta correcta, no un fallo.
-      Tu histórico queda guardado en este navegador: vuelve otro día y verás cómo crece.
+      <b>La popularidad es un índice calculado</b>, no una métrica oficial. Ninguna
+      plataforma la publica ya: Spotify dejó de exponerla a las aplicaciones nuevas. Se
+      deriva de un dato que sí es real —el rango que Deezer asigna a cada canción— con una
+      fórmula explícita: <code style="color:var(--purple)">media(rango del top 10) ÷ 10.000</code>.
+      Se usa la media y no el máximo para que un único éxito viral no describa mal a todo
+      el repertorio.
+      <br><br>
+      <b>El histórico se acumula desde hoy.</b> Ninguna API pública devuelve los seguidores
+      que un artista tenía hace treinta días, así que el agente los mide día a día. Hasta
+      que haya suficientes puntos la tendencia dirá «datos insuficientes», que es la
+      respuesta correcta y no un fallo.
     </div>
   </div>
 </section>
@@ -745,6 +746,10 @@ def web_analyze(name, metric):
             "r2": round(result.trend.r_squared, 2),
             "points": result.trend.sample_size,
             "avg": round(result.summary.average),
+            "albums": result.snapshot.albums,
+            "popularity_index": result.snapshot.popularity
+                if result.snapshot.is_available("popularity") else 0,
+            "top_track_rank": result.snapshot.top_track_rank,
         },
         "alerts": [{"level": a.level.value, "message": a.message} for a in result.alerts],
     })
@@ -785,6 +790,9 @@ def web_analyze_deezer(name, payload_json, metric, top_json="null"):
             "points": result.trend.sample_size,
             "avg": round(result.summary.average),
             "albums": result.snapshot.albums,
+            "popularity_index": result.snapshot.popularity
+                if result.snapshot.is_available("popularity") else 0,
+            "top_track_rank": result.snapshot.top_track_rank,
             "available": result.snapshot.is_available(metric),
         },
         "alerts": [{"level": a.level.value, "message": a.message} for a in result.alerts],
@@ -886,7 +894,15 @@ function renderKpis(k, alerts){
     <div class="kpi"><div class="k">Alertas</div>
       <div class="v ${alerts.length ? "down" : "up"}" style="font-size:17px">
         ${alerts.length ? alerts.length + " activa" + (alerts.length > 1 ? "s" : "") : "ninguna"}
-      </div></div>`;
+      </div></div>
+    ${k.albums ? `<div class="kpi"><div class="k">Álbumes publicados</div>
+      <div class="v flat">${k.albums.toLocaleString("es-MX")}</div></div>` : ""}
+    ${k.popularity_index ? `<div class="kpi">
+      <div class="k">Popularidad · calculada</div>
+      <div class="v flat">${k.popularity_index}<span style="font-size:14px;color:var(--dim)">/100</span></div></div>` : ""}
+    ${k.top_track_rank ? `<div class="kpi">
+      <div class="k">Alcance del top 10</div>
+      <div class="v flat" style="font-size:18px">${k.top_track_rank.toLocaleString("es-MX")}</div></div>` : ""}`;
 }
 
 function renderChart(labels, values, artist, metric){
@@ -1379,8 +1395,22 @@ function onKey(e){
   }
 }
 
+/* Cada fuente publica metricas distintas. Ofrecer las que no publica dejaria
+   al usuario elegir un analisis vacio.                                      */
+const METRICS = {
+  simulated: ["followers", "monthly_listeners", "popularity"],
+  deezer:    ["followers", "popularity"],
+};
+
 function switchSource(){
   const isDeezer = $("source").value === "deezer";
+
+  const previous = $("metric").value;
+  const available = METRICS[$("source").value] || METRICS.simulated;
+  $("metric").innerHTML = available
+    .map(m => `<option value="${m}">${m}</option>`).join("");
+  $("metric").value = available.includes(previous) ? previous : "followers";
+
   $("field-catalog").classList.toggle("hide", isDeezer);
   $("field-free").classList.toggle("hide", !isDeezer);
   $("note-simulated").classList.toggle("hide", isDeezer);

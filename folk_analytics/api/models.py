@@ -22,6 +22,9 @@ class ArtistData:
         captured_at      : momento de captura, en UTC.
         albums           : numero de albumes publicados. Solo algunas fuentes
                            lo exponen; 0 significa "no publicado".
+        top_track_rank   : media del rango de las canciones mas populares, en
+                           la escala original de la fuente. Es el dato crudo
+                           del que se deriva el indice de popularidad.
 
     Convencion importante: un 0 en una metrica puede significar dos cosas muy
     distintas —que el valor real sea cero, o que la fuente no publique ese
@@ -37,6 +40,7 @@ class ArtistData:
     source: str
     captured_at: datetime
     albums: int = 0
+    top_track_rank: int = 0
     unavailable_metrics: tuple[str, ...] = ()
 
     def to_dict(self) -> dict:

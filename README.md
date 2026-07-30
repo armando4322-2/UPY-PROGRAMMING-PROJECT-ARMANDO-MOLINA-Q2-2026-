@@ -112,6 +112,39 @@ The simulated one can demonstrate trend detection today; the real one cannot,
 because no public API returns the follower count an artist had thirty days ago.
 Keeping both is the honest way to have real data *and* a demonstrable feature.
 
+### Live stats — the real-data source
+
+"Live stats" is not one API. Each metric comes from whichever source actually
+publishes it, so no field is ever left empty:
+
+| Metric | Source | Nature |
+|---|---|---|
+| Followers | Deezer | direct |
+| Albums | Deezer | direct |
+| Top 10 tracks + previews | Deezer | direct |
+| Top-10 reach | Deezer | mean of real track ranks |
+| **Popularity 0–100** | Deezer | **derived — see below** |
+| Photo, canonical ID | Spotify | direct |
+| Country, type, genres | MusicBrainz | direct |
+
+**The popularity index is calculated, not official.** No platform publishes a
+per-artist popularity figure any more — Spotify stopped exposing it to new
+applications. It is derived from something that *is* real: the rank Deezer
+assigns each track (0–1,000,000).
+
+```
+index = mean(rank of the top 10 tracks) / 10,000
+```
+
+The mean is used rather than the maximum on purpose: one viral hit would spike
+the maximum and misdescribe an artist whose remaining catalogue is barely
+played. This is labelled as calculated in the report, on the page and here —
+it is **not** a platform metric and **not** a play count.
+
+Metrics no source publishes are **removed from the interface** rather than shown
+as "not published". A shorter report that is entirely true beats a longer one
+with holes in it.
+
 | | Simulated | Deezer | Spotify |
 |---|---|---|---|
 | Role | trend demonstration | **metrics** | **artist photos** |
@@ -120,8 +153,8 @@ Keeping both is the honest way to have real data *and* a demonstrable feature.
 | Works in the browser | yes | yes (JSONP) | n/a (baked in) |
 | History available now | 30 days | accumulates | — |
 | Followers | yes | **yes** | **blocked** |
-| Monthly listeners | yes | not published | not published |
-| Popularity | yes | not published | **blocked** |
+| Monthly listeners | yes | not published anywhere — field removed | — |
+| Popularity | yes | **derived index** | **blocked** |
 | Albums | — | yes | — |
 
 ### Simulated source (default)
@@ -303,13 +336,14 @@ folk_analytics/
 │   └── spotify.py       # real source (future work)
 ├── analytics/
 │   ├── metrics.py       # descriptive statistics
+│   ├── popularity.py    # derived popularity index
 │   ├── trends.py        # trend detection
 │   └── alerts.py        # threshold-based alert engine
 ├── storage/
 │   └── json_store.py    # history and watchlist persistence
 └── reports/
     └── console.py       # report rendering
-tests/                   # 157 pytest tests
+tests/                   # 171 pytest tests
 tools/
 ├── build_web.py         # generates docs/index.html from the package
 ├── web_template.html    # page template
@@ -328,7 +362,7 @@ logs/
 python -m pytest tests/ -v
 ```
 
-157 tests. The suite covers input validation, trend mathematics, persistence, the alert
+171 tests. The suite covers input validation, trend mathematics, persistence, the alert
 engine and the full agent flow, including edge cases: constant series, division by
 zero, odd-length windows, corrupt history files, retry exhaustion, and — for the real
 source — homonym disambiguation, API quota errors and malformed responses, all

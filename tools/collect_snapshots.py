@@ -27,6 +27,7 @@ from __future__ import annotations
 import json
 import sys
 import time
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -36,6 +37,10 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from folk_analytics.api.artists import load_catalog          # noqa: E402
 from folk_analytics.api.base import StreamingAPIError        # noqa: E402
 from folk_analytics.api.deezer import DeezerClient           # noqa: E402
+from folk_analytics.analytics.popularity import (            # noqa: E402
+    mean_track_rank,
+    popularity_index,
+)
 from folk_analytics.logging_setup import setup_logging       # noqa: E402
 from folk_analytics.storage.json_store import SnapshotStore  # noqa: E402
 
@@ -43,7 +48,7 @@ HISTORY_FILE = PROJECT_ROOT / "folk_analytics" / "data" / "history.json"
 
 #: Pausa entre consultas. Deezer admite unas 50 peticiones cada 5 segundos;
 #: con esto vamos muy por debajo y no se molesta a un servicio gratuito.
-REQUEST_DELAY = 0.4
+REQUEST_DELAY = 0.25   # dos peticiones por artista: metricas y repertorio
 
 
 def collect(dry_run: bool = False) -> int:
@@ -76,11 +81,30 @@ def collect(dry_run: bool = False) -> int:
             print(f"  {index:>2}. {artist.name:<22} FALLO: {str(exc)[:44]}")
             continue
 
+        # El indice de popularidad se deriva del repertorio, asi que hay que
+        # calcularlo AQUI: si no, el historico solo acumularia seguidores y la
+        # popularidad nunca llegaria a ser una serie temporal.
+        try:
+            tracks = client.fetch_top_tracks(data)
+        except StreamingAPIError:
+            tracks = ()
+
+        if tracks:
+            data = replace(
+                data,
+                popularity=popularity_index(tracks),
+                top_track_rank=round(mean_track_rank(tracks)),
+                unavailable_metrics=tuple(
+                    m for m in data.unavailable_metrics if m != "popularity"
+                ),
+            )
+
         is_new = store.add(data, save=False)
         added += is_new
         updated += not is_new
         mark = "nuevo" if is_new else "actualizado"
-        print(f"  {index:>2}. {data.name:<22} {data.followers:>12,}  ({mark})")
+        popularity = f"pop {data.popularity:>3}" if data.is_available("popularity") else "pop  --"
+        print(f"  {index:>2}. {data.name:<22} {data.followers:>12,}  {popularity}  ({mark})")
         time.sleep(REQUEST_DELAY)
 
     if dry_run:

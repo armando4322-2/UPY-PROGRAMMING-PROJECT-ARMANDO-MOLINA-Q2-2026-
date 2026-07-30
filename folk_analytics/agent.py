@@ -8,12 +8,13 @@ coordina el ciclo.
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 
 from folk_analytics import config
 from folk_analytics.analytics.alerts import Alert, AlertLevel, evaluate_alerts
 from folk_analytics.analytics.metrics import MetricsSummary, summarize
+from folk_analytics.analytics.popularity import mean_track_rank, popularity_index
 from folk_analytics.analytics.trends import TrendResult, analyze_artist_trend
 from folk_analytics.api.base import (
     ArtistNotFoundError,
@@ -123,6 +124,12 @@ class FolkAnalyticsAgent:
         name = validate_artist_name(artist_name)
         snapshot = self.client.fetch_artist(name)
 
+        # El top de canciones se pide aqui, y no al final, porque de el se
+        # deriva el indice de popularidad: tiene que formar parte de la
+        # instantanea que se guarda, para que sea historico y trendable.
+        tracks = self._fetch_tracks(snapshot)
+        snapshot = self._enrich(snapshot, tracks)
+
         if not snapshot.is_available(self.metric):
             logger.warning(
                 "La fuente '%s' no publica la metrica '%s'; el analisis carece "
@@ -146,8 +153,6 @@ class FolkAnalyticsAgent:
         trend = analyze_artist_trend(history, self.metric)
 
         # 3. ACTUAR
-        tracks = self._fetch_tracks(snapshot)
-
         alerts = evaluate_alerts(
             artist_name=snapshot.name,
             trend=trend,
@@ -212,6 +217,27 @@ class FolkAnalyticsAgent:
             len(errors),
         )
         return results, errors
+
+    def _enrich(self, snapshot: ArtistData, tracks: tuple[Track, ...]) -> ArtistData:
+        """Completa la instantanea con las metricas derivadas del repertorio.
+
+        Ninguna fuente publica un indice de popularidad por artista, pero
+        Deezer si publica el rango de cada cancion. A partir de el se calcula
+        uno propio, y la metrica deja de figurar como no disponible: pasa a
+        estar disponible y calculada, que es distinto de estar vacia.
+        """
+        if not tracks:
+            return snapshot
+
+        index = popularity_index(tracks)
+        pending = tuple(m for m in snapshot.unavailable_metrics if m != "popularity")
+
+        return replace(
+            snapshot,
+            popularity=index,
+            top_track_rank=round(mean_track_rank(tracks)),
+            unavailable_metrics=pending,
+        )
 
     def _fetch_tracks(self, snapshot: ArtistData) -> tuple[Track, ...]:
         """Recupera el top de canciones si la fuente lo publica.

@@ -22,8 +22,13 @@ class StreamingClient(ABC):
     de Spotify no requiere tocar el agente, el analisis ni los reportes.
     """
 
-    #: Nombre corto de la fuente, se guarda en cada snapshot.
+    #: Identificador interno de la fuente. Se guarda en cada instantanea, asi
+    #: que cambiarlo huerfanaria el historico ya recolectado.
     source_name: str = "base"
+
+    #: Nombre que ve el usuario. Se separa del identificador precisamente para
+    #: poder cambiar la etiqueta sin tocar los datos guardados.
+    display_name: str = "base"
 
     @abstractmethod
     def fetch_artist(self, artist_name: str) -> ArtistData:

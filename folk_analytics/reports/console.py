@@ -35,6 +35,14 @@ else:
     }
     SPARK_CHARS = ".:-=+*#@"
 
+#: Nombres visibles de cada fuente. El identificador que se guarda en las
+#: instantaneas no cambia, para no huerfanar el historico ya recolectado.
+SOURCE_LABELS = {
+    "deezer": "Live stats \u00b7 datos reales",
+    "simulated": "Simulada \u00b7 con hist\u00f3rico",
+    "spotify": "Spotify",
+}
+
 ALERT_MARKS = {
     AlertLevel.INFO: "[i]",
     AlertLevel.WARNING: "[!]",
@@ -50,15 +58,16 @@ def _field(label: str, value: str) -> str:
     return f"  {label:<22}: {value}"
 
 
-def _metric_field(snapshot: ArtistData, label: str, metric: str, suffix: str = "") -> str:
-    """Formatea una metrica distinguiendo el cero real del dato no publicado.
+def _metric_field(snapshot: ArtistData, label: str, metric: str, suffix: str = "") -> str | None:
+    """Formatea una metrica, u omite la fila si la fuente no la publica.
 
-    Mostrar "0" cuando la fuente simplemente no publica el dato afirmaria
-    algo falso sobre el artista. Cada fuente declara que metricas no expone
-    y aqui se refleja tal cual.
+    Mostrar "0" cuando la fuente no publica el dato afirmaria algo falso
+    sobre el artista, y mostrar "no publicado" deja un hueco que no aporta
+    nada. Se omite la fila y en su lugar se muestran las metricas que si
+    existen: es preferible un reporte mas corto y enteramente cierto.
     """
     if not snapshot.is_available(metric):
-        return _field(label, "no publicado por esta fuente")
+        return None
     return _field(label, f"{getattr(snapshot, metric):,}{suffix}")
 
 
@@ -109,16 +118,27 @@ def render_report(
     lines.append("  IDENTIDAD")
     lines.append(_field("Artista", snapshot.name))
     lines.append(_field("ID", snapshot.artist_id))
-    lines.append(_field("Fuente de datos", snapshot.source))
+    lines.append(_field("Fuente de datos", SOURCE_LABELS.get(snapshot.source, snapshot.source)))
     lines.append(_field("Capturado", snapshot.captured_at.strftime("%Y-%m-%d %H:%M UTC")))
 
     lines.append(_line(LIGHT))
     lines.append("  METRICAS ACTUALES")
-    lines.append(_metric_field(snapshot, "Seguidores", "followers"))
-    lines.append(_metric_field(snapshot, "Oyentes mensuales", "monthly_listeners"))
-    lines.append(_metric_field(snapshot, "Popularidad", "popularity", suffix="/100"))
+
+    rows = [
+        _metric_field(snapshot, "Seguidores", "followers"),
+        _metric_field(snapshot, "Oyentes mensuales", "monthly_listeners"),
+        _metric_field(snapshot, "Popularidad", "popularity", suffix="/100"),
+    ]
+    lines.extend(row for row in rows if row is not None)
+
     if snapshot.albums:
         lines.append(_field("Albumes publicados", f"{snapshot.albums:,}"))
+
+    if snapshot.top_track_rank:
+        lines.append(_field("Alcance del top 10", f"{snapshot.top_track_rank:,}"))
+        lines.append("  · Popularidad = media del alcance / 10.000. Es un indice")
+        lines.append("    calculado por este proyecto sobre datos reales, no una")
+        lines.append("    metrica oficial de la plataforma ni un numero de escuchas.")
 
     lines.append(_line(LIGHT))
     lines.append(f"  HISTORICO ({metric})")

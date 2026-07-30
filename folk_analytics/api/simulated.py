@@ -120,6 +120,7 @@ class SimulatedClient(StreamingClient):
     """Fuente de datos sintetica, deterministica y sin dependencias de red."""
 
     source_name = "simulated"
+    display_name = "Simulada \u00b7 con hist\u00f3rico"
 
     def __init__(self, failure_rate: float = 0.12, sleep_between_retries: bool = True):
         """

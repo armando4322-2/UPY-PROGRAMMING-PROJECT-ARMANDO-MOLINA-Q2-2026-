@@ -140,6 +140,7 @@ class DeezerClient(StreamingClient):
     """Fuente de datos reales, sin credenciales."""
 
     source_name = "deezer"
+    display_name = "Live stats \u00b7 datos reales"
 
     def __init__(self, timeout: int = 10, results_per_query: int = 10,
                  sleep_between_retries: bool = True):
