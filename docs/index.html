@@ -912,7 +912,10 @@ function renderArtists(){
       switchSource();
       $("artist-free").value = artist.name;
       hideAc();
-      document.querySelector("#run").scrollIntoView({behavior:"smooth", block:"center"});
+      // Se lleva la vista al panel de ejecucion, no al boton: centrar el boton
+      // dejaba media pantalla en blanco por encima.
+      document.querySelector("#field-catalog").closest(".wrap")
+              .scrollIntoView({behavior:"smooth", block:"start"});
       analyze();
     };
   });
