@@ -235,7 +235,7 @@
 </section>
 
 <section>
-  <div class="wrap">
+  <div class="wrap" id="run-panel">
     <h2>Ejecuta el agente</h2>
     <p class="sub">
       Elige la fuente y un artista, y pulsa Analizar. El agente valida la entrada, consulta
@@ -376,8 +376,8 @@
 <section>
   <div class="wrap">
     <h2>Artistas destacados</h2>
-    <p class="sub">
-      26 artistas con identificador ya resuelto. Pulsa cualquiera para analizarlo con
+    <p class="sub" id="artists-sub">
+      Artistas con identificador ya resuelto. Pulsa cualquiera para analizarlo con
       datos reales. Las fotos son las oficiales de Spotify; la descripción se compone
       con el país, tipo y géneros que publica MusicBrainz — nada está escrito a mano.
     </p>
@@ -1321,10 +1321,10 @@ function renderArtists(){
       switchSource();
       $("artist-free").value = artist.name;
       hideAc();
-      // Se lleva la vista al panel de ejecucion, no al boton: centrar el boton
-      // dejaba media pantalla en blanco por encima.
-      document.querySelector("#field-catalog").closest(".wrap")
-              .scrollIntoView({behavior:"smooth", block:"start"});
+      // Ancla estable: el panel entero. Antes se apuntaba al campo del
+      // catalogo, que queda oculto al cambiar a la fuente real, y el scroll
+      // acababa en un sitio arbitrario.
+      $("run-panel").scrollIntoView({behavior:"smooth", block:"start"});
       analyze();
     };
   });
@@ -1539,6 +1539,11 @@ async function boot(){
     CATALOG = JSON.parse(await py.runPythonAsync("web_catalog()"));
     CATALOG.forEach(a => byName.set(a.name.toLowerCase(), a));
     renderArtists();
+    $("artists-sub").textContent =
+      `${CATALOG.length} artistas con identificador ya resuelto. Pulsa cualquiera ` +
+      `para analizarlo con datos reales. Las fotos son las oficiales de Spotify; ` +
+      `la descripción se compone con el país, tipo y géneros que publica ` +
+      `MusicBrainz — nada está escrito a mano.`;
     renderOverview(JSON.parse(await py.runPythonAsync("web_overview()")));
 
     switchSource();
