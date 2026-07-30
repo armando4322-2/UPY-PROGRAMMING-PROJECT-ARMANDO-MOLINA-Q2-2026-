@@ -207,6 +207,31 @@ copying `.env.example` to `.env`. Then: `python run.py --source spotify`
 > the analysis leans on `followers` and the `popularity` index (0–100), which are
 > officially available. Documenting the limitation beats inventing the number.
 
+## Collecting real history
+
+No public API returns the follower count an artist had thirty days ago. This was
+checked rather than assumed: the Wayback Machine holds no captures of `api.deezer.com`
+and only empty redirects for artist pages; ListenBrainz aggregates listens per user
+rather than over time; Spotify blocks metrics outright. **The past is not available
+anywhere.**
+
+The only honest way to obtain a real time series is to start measuring it. A GitHub
+Action runs `tools/collect_snapshots.py` daily, appends one point per artist to
+`folk_analytics/data/history.json`, and commits it. The repository becomes the
+historical database, and its commit log is evidence that each figure was recorded on
+its date rather than generated afterwards.
+
+```bash
+python tools/collect_snapshots.py              # collect now
+python tools/collect_snapshots.py --dry-run    # preview, write nothing
+```
+
+This also fixes something conceptual. Until now the agent only perceived when someone
+ran it by hand; an agent perceives recurrently and accumulates memory. Now it does.
+
+Backfilling the past with estimates was rejected: presenting invented figures beside
+measured ones is precisely what invalidates an analysis.
+
 ## Web interface
 
 [**armando4322-2.github.io/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-**](https://armando4322-2.github.io/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-/)
@@ -237,8 +262,9 @@ and `spotify.py` (needs network and credentials).
 
 ## Featured artists
 
-The project ships a catalog of 26 artists with identifiers already resolved, so they
-can be analysed with one click. It is generated offline and committed:
+The project ships a catalog of 50 artists with identifiers already resolved, so they
+can be analysed with one click. Selecting one also fetches its **top 10 tracks**, with
+30-second previews. It is generated offline and committed:
 
 ```bash
 python tools/build_catalog.py           # resume-safe; skips what it already has
@@ -250,9 +276,16 @@ metrics, Spotify the official photo, MusicBrainz the country, type and genres th
 compose the description. **No description is hand-written**, so nothing false can be
 asserted about an artist: when a field is missing it simply does not appear.
 
-The catalog deliberately stores only slow-moving data. Follower counts are *not*
-cached — they would freeze at generation time and the project would present stale
-figures as current. They are fetched live on every analysis.
+The catalog deliberately stores only slow-moving data. Follower counts and track
+rankings are *not* cached — they would freeze at generation time and the project would
+present stale figures as current. Both are fetched live on every analysis.
+
+Disambiguation applies to MusicBrainz too, and it matters: searching `Mora` ranks
+*Mora Träsk* (Swedish children's music, score 100) above the Puerto Rican reggaeton
+artist (score 96). Taking the top result would have described a reggaeton artist as a
+children's musician. An exact name match is required; when there is none, the genre
+fields are simply left empty. **An empty description is correct — a wrong one asserts
+something false about a real person.**
 
 ## Project structure
 
@@ -276,11 +309,12 @@ folk_analytics/
 │   └── json_store.py    # history and watchlist persistence
 └── reports/
     └── console.py       # report rendering
-tests/                   # 138 pytest tests
+tests/                   # 157 pytest tests
 tools/
 ├── build_web.py         # generates docs/index.html from the package
 ├── web_template.html    # page template
-└── build_catalog.py     # generates the featured-artist catalog
+├── build_catalog.py     # generates the featured-artist catalog
+└── collect_snapshots.py # daily real-metric collection
 docs/
 └── index.html           # generated — the live web interface
 logs/
@@ -294,7 +328,7 @@ logs/
 python -m pytest tests/ -v
 ```
 
-138 tests. The suite covers input validation, trend mathematics, persistence, the alert
+157 tests. The suite covers input validation, trend mathematics, persistence, the alert
 engine and the full agent flow, including edge cases: constant series, division by
 zero, odd-length windows, corrupt history files, retry exhaustion, and — for the real
 source — homonym disambiguation, API quota errors and malformed responses, all

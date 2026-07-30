@@ -38,7 +38,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from folk_analytics.api.base import ArtistNotFoundError      # noqa: E402
-from folk_analytics.api.matching import select_best_match    # noqa: E402
+from folk_analytics.api.matching import match_score, select_best_match  # noqa: E402
 
 OUTPUT = PROJECT_ROOT / "folk_analytics" / "data" / "catalog.json"
 USER_AGENT = "FolkAnalytics/2.3 (proyecto academico UPY)"
@@ -53,6 +53,13 @@ ARTISTS = [
     "Black Eyed Peas", "Ivan Cornejo", "Calle 24", "The Weeknd", "Rojuu",
     "kensuke ushio", "Bruno Mars", "Natanael Cano", "Luis Miguel", "Drake",
     "Josean Log", "Chuyin", "NewJeans",
+
+    # Segunda tanda. Luis Miguel no se repite: ya figura arriba.
+    "Stromae", "Pomme", "Jose Jose", "Tainy", "Tame Impala", "TWICE", "ABBA",
+    "C. Tangana", "Travis Scott", "Caifanes", "Romeo Santos", "Alejandro Sanz",
+    "Post Malone", "Tyler, The Creator", "Rels B", "Billie Eilish",
+    "21 Savage", "Miki Matsubara", "Anri", "Dillom", "Cuco", "Frank Sinatra",
+    "The Beatles", "Taylor Swift",
 ]
 
 
@@ -138,16 +145,32 @@ def from_spotify(name, token):
 
 
 def from_musicbrainz(name):
-    """Pais, tipo y generos, que es lo que alimenta la descripcion."""
+    """Pais, tipo y generos, que es lo que alimenta la descripcion.
+
+    Exige coincidencia EXACTA de nombre. La puntuacion que devuelve
+    MusicBrainz no basta: al buscar "Mora" clasifica primero a "Mora Trask"
+    (musica infantil sueca, score 100) por delante del "Mora" puertorriqueno
+    de reggaeton (score 96). Quedarse con el primero habria descrito a un
+    reggaetonero como artista de musica infantil.
+
+    Ante la duda no se devuelve nada. Una descripcion vacia es correcta;
+    una equivocada afirma algo falso sobre una persona real.
+    """
     payload = get_json(
         "https://musicbrainz.org/ws/2/artist?"
-        + urllib.parse.urlencode({"query": 'artist:"%s"' % name, "fmt": "json", "limit": 1})
+        + urllib.parse.urlencode({"query": 'artist:"%s"' % name, "fmt": "json", "limit": 10})
     )
-    artists = payload.get("artists") or []
-    if not artists:
+    candidates = payload.get("artists") or []
+    if not candidates:
         return {}
 
-    artist = artists[0]
+    exact = [c for c in candidates if match_score(c.get("name", ""), name) == 3]
+    if not exact:
+        print("      (sin coincidencia exacta en MusicBrainz: se omiten los generos)")
+        return {}
+
+    # Entre las coincidencias exactas, la que MusicBrainz puntua mas alto.
+    artist = max(exact, key=lambda c: c.get("score", 0))
     tags = sorted(artist.get("tags") or [], key=lambda t: -t.get("count", 0))
     return {
         "country": artist.get("country"),
@@ -182,6 +205,56 @@ def save(entries):
                  "Las metricas se consultan en vivo para no mostrar cifras caducadas."),
         "artists": entries,
     }, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def refresh_metadata(budget=None):
+    """Vuelve a consultar solo MusicBrainz, conservando Deezer y Spotify.
+
+    Permite corregir descripciones sin gastar peticiones en lo que ya estaba
+    bien resuelto.
+    """
+    started = time.time()
+    existing = load_existing()
+    if not existing:
+        print("  No hay catalogo que refrescar")
+        return OUTPUT
+
+    entries = list(existing.values())
+    changed = pending = 0
+
+    for entry in entries:
+        if entry.get("_meta_ok"):
+            continue
+        if budget is not None and time.time() - started > budget:
+            pending += 1
+            continue
+
+        before = (entry.get("country"), tuple(entry.get("genres", [])))
+        for key in ("country", "kind", "gender", "genres", "began"):
+            entry.pop(key, None)
+        try:
+            entry.update({k: v for k, v in from_musicbrainz(entry["name"]).items() if v})
+        except (urllib.error.URLError, KeyError) as exc:
+            print("  %-22s ERROR %s" % (entry["name"][:22], exc))
+        entry["_meta_ok"] = True
+
+        after = (entry.get("country"), tuple(entry.get("genres", [])))
+        mark = "  <-- CAMBIADO" if before != after else ""
+        changed += before != after
+        print("  %-22s %-4s %s%s" % (entry["name"][:22], entry.get("country", "--"),
+                                     ", ".join(entry.get("genres", [])) or "sin generos", mark))
+        time.sleep(MUSICBRAINZ_DELAY)
+
+    save(entries)
+    print("\n  Entradas modificadas: %d | pendientes: %d" % (changed, pending))
+    if pending:
+        print("  Vuelve a ejecutar para continuar.")
+    else:
+        for entry in entries:
+            entry.pop("_meta_ok", None)
+        save(entries)
+        print("  Refresco completo.")
+    return OUTPUT
 
 
 def build(force=False, budget=None):
@@ -274,6 +347,13 @@ def build(force=False, budget=None):
 
 
 if __name__ == "__main__":
+    if "--refresh-meta" in sys.argv:
+        refresh_metadata(
+            budget=float(sys.argv[sys.argv.index("--budget") + 1])
+            if "--budget" in sys.argv else None
+        )
+        sys.exit(0)
+
     build(
         force="--force" in sys.argv,
         budget=float(sys.argv[sys.argv.index("--budget") + 1])

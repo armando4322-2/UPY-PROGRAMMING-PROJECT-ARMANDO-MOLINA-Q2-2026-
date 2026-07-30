@@ -73,6 +73,34 @@ class ArtistData:
         return self.followers > 0 or self.monthly_listeners > 0
 
 
+@dataclass(frozen=True)
+class Track:
+    """Una cancion dentro del top de un artista.
+
+    `rank` es el indice de popularidad que publica la fuente (0-1.000.000 en
+    Deezer). No es un numero de reproducciones y no debe presentarse como tal.
+    """
+
+    position: int
+    title: str
+    album: str
+    rank: int
+    duration_seconds: int
+    preview_url: str = ""
+    link: str = ""
+
+    @property
+    def duration(self) -> str:
+        """Duracion en formato mm:ss."""
+        minutes, seconds = divmod(max(0, self.duration_seconds), 60)
+        return f"{minutes}:{seconds:02d}"
+
+    def to_dict(self) -> dict:
+        data = asdict(self)
+        data["duration"] = self.duration
+        return data
+
+
 def utcnow() -> datetime:
     """Momento actual en UTC, sin microsegundos (mas legible en los JSON)."""
     return datetime.now(timezone.utc).replace(microsecond=0)

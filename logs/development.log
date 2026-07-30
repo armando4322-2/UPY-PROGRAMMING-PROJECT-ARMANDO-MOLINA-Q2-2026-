@@ -490,3 +490,88 @@
 2026-07-30 08:41:00 — [INFO] 14 tests added for the catalog and descriptions (138)
 2026-07-30 08:42:00 — [INFO] Session 06 ended
 ────────────────────────────────────────────────────────────────────────────────
+
+
+────────────────────────────────────────────────────────────────────────────────
+ SESSION 07 — 2026-07-30 — Real history, 50 artists, top tracks (v2.4.0)
+────────────────────────────────────────────────────────────────────────────────
+
+ THE QUESTION THAT REFRAMED THE PROBLEM
+ --------------------------------------
+2026-07-30 09:10:00 — [INFO] Author asked why keep adding artists if the data is
+                             incomplete — what he wants is the chart
+2026-07-30 09:11:00 — [INFO] Searched properly instead of repeating "impossible":
+                               Wayback Machine  no captures of api.deezer.com; artist
+                                                pages archived only as empty redirects
+                               ListenBrainz     responds, but aggregates listens per
+                                                user, not over time; almost no Latin
+                                                artist coverage
+                               Spotify          metrics blocked (session 06)
+2026-07-30 09:14:00 — [INFO] Conclusion, and it reframes the task: the data is NOT
+                             incomplete. The PAST is missing. Everything about the
+                             present is real and complete.
+2026-07-30 09:15:00 — [INFO] Two honest routes, both taken:
+                               compare artists against each other, possible today
+                               measure over time, starting now
+
+ DAILY COLLECTION — the repository as the database
+ -------------------------------------------------
+2026-07-30 09:20:00 — [INFO] tools/collect_snapshots.py + a cron GitHub Action
+2026-07-30 09:21:00 — [INFO] The commit log is the evidence: each figure is recorded
+                             on its date, not generated afterwards
+2026-07-30 09:22:00 — [INFO] Fixes something conceptual too. The agent only perceived
+                             when run by hand; now it perceives on its own and
+                             accumulates memory, which is what an agent does.
+2026-07-30 09:23:00 — [INFO] Backfilling with estimates rejected again
+2026-07-30 09:30:00 — [INFO] Action triggered manually and verified: it collected and
+                             committed on its own
+
+ COMPARATIVE OVERVIEW
+ --------------------
+2026-07-30 09:40:00 — [INFO] Ranking, followers-vs-albums scatter, genre distribution
+2026-07-30 09:41:00 — [INFO] Logarithmic scale: the range spans 1,728 to 24 million
+                             followers; linear would erase every small artist
+2026-07-30 09:42:00 — [INFO] Drawn from the collected history already embedded in the
+                             page, so it needs no network call and grows richer each
+                             day without touching the code
+
+ CATALOG EXPANDED TO 50
+ ----------------------
+2026-07-30 10:05:00 — [WARNING] 'Luis Miguel' appeared twice in the author's list
+2026-07-30 10:06:00 — [WARNING] 'Tyler The Creator' failed to match: Deezer registers
+                                it as 'Tyler, The Creator'
+2026-07-30 10:06:30 — [FIXED]   normalize() now ignores punctuation as well as accents
+2026-07-30 10:10:00 — [WARNING] 'Lolo Morales' exists in no source; search returned
+                                only unrelated artists, correctly rejected by the
+                                disambiguation. Removed at the author's request.
+2026-07-30 10:12:00 — [CRITICAL] 'Mora' resolved to the WRONG MusicBrainz entry:
+                                 'Mora Trask', Swedish children's music, scored 100
+                                 against the Puerto Rican reggaeton artist at 96.
+                                 The site was describing a reggaeton artist as a
+                                 children's musician — exactly the false assertion
+                                 this project keeps trying to avoid.
+2026-07-30 10:14:00 — [FIXED]   MusicBrainz lookups now require an exact name match.
+                                 Its own relevance score is not enough. With no exact
+                                 match the genre fields are left empty: an empty
+                                 description is correct, a wrong one is a lie about a
+                                 real person.
+2026-07-30 10:15:00 — [INFO]    --refresh-meta added to re-query only MusicBrainz
+                                 without spending requests on what already resolved
+2026-07-30 10:20:00 — [INFO] Final catalog: 50 artists, all with photo and Deezer id
+
+ TOP TRACKS
+ ----------
+2026-07-30 10:35:00 — [INFO] Deezer publishes /artist/{id}/top with title, album,
+                             rank, duration and a 30-second preview. JSONP verified.
+2026-07-30 10:36:00 — [INFO] Track model added; parsing kept transport-independent so
+                             terminal and web share it
+2026-07-30 10:37:00 — [INFO] Treated as complementary: if the top fails, the analysis
+                             still completes rather than aborting
+2026-07-30 10:38:00 — [INFO] `rank` is labelled as a popularity index, NOT a play
+                             count, in the report and on the page. It is not the same
+                             thing and presenting it as such would misinform.
+2026-07-30 10:40:00 — [INFO] Web: track table with a single shared audio player, so
+                             previews cannot overlap
+2026-07-30 10:45:00 — [INFO] 19 tests added (157 total)
+2026-07-30 10:50:00 — [INFO] Session 07 ended
+────────────────────────────────────────────────────────────────────────────────

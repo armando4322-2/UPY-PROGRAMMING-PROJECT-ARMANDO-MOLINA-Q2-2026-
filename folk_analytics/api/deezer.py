@@ -44,12 +44,13 @@ from folk_analytics.api.base import (
 )
 from folk_analytics.api.matching import match_score, normalize
 from folk_analytics.api.matching import select_best_match as _select
-from folk_analytics.api.models import ArtistData, utcnow
+from folk_analytics.api.models import ArtistData, Track, utcnow
 from folk_analytics.logging_setup import get_logger
 
 logger = get_logger("api.deezer")
 
 SEARCH_URL = "https://api.deezer.com/search/artist"
+TOP_TRACKS_URL = "https://api.deezer.com/artist/{artist_id}/top"
 USER_AGENT = "FolkAnalytics/2.2 (proyecto academico UPY)"
 
 #: Metricas que Deezer no publica. Se declaran para que el reporte pueda
@@ -105,6 +106,34 @@ def parse_search_payload(payload: dict, query: str) -> ArtistData:
 
     best = select_best_match(payload.get("data") or [], query)
     return to_artist_data(best)
+
+
+def parse_top_tracks(payload: dict, limit: int = 10) -> tuple[Track, ...]:
+    """Interpreta la respuesta de top tracks de Deezer.
+
+    Igual que el parseo de artistas, se mantiene independiente del transporte
+    para que consola (urllib) y web (JSONP) compartan la misma logica.
+    """
+    if not isinstance(payload, dict):
+        raise StreamingAPIError("Deezer devolvio una respuesta con formato inesperado")
+
+    if payload.get("error"):
+        error = payload["error"]
+        message = error.get("message", "error desconocido") if isinstance(error, dict) else str(error)
+        raise StreamingAPIError(f"Deezer respondio con un error: {message}")
+
+    tracks = []
+    for position, record in enumerate((payload.get("data") or [])[:limit], start=1):
+        tracks.append(Track(
+            position=position,
+            title=(record.get("title") or "").strip() or "Sin titulo",
+            album=((record.get("album") or {}).get("title") or "").strip(),
+            rank=int(record.get("rank", 0) or 0),
+            duration_seconds=int(record.get("duration", 0) or 0),
+            preview_url=record.get("preview") or "",
+            link=record.get("link") or "",
+        ))
+    return tuple(tracks)
 
 
 class DeezerClient(StreamingClient):
@@ -171,6 +200,31 @@ class DeezerClient(StreamingClient):
         """Deezer no permite enumerar su catalogo: se busca por nombre."""
         return []
 
+    def fetch_top_tracks(self, artist: ArtistData, limit: int = 10) -> tuple[Track, ...]:
+        """Recupera las canciones mas populares de un artista.
+
+        El identificador interno lleva el prefijo 'DZ-'; hay que quitarlo para
+        componer la URL de la API.
+        """
+        numeric_id = artist.artist_id.removeprefix("DZ-")
+        url = TOP_TRACKS_URL.format(artist_id=numeric_id) + "?" + urllib.parse.urlencode(
+            {"limit": limit}
+        )
+        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except (urllib.error.URLError, json.JSONDecodeError, TimeoutError) as exc:
+            # El top es informacion complementaria: si falla, el analisis debe
+            # continuar igualmente en lugar de abortar.
+            logger.warning("No se pudo recuperar el top de '%s': %s", artist.name, exc)
+            return ()
+
+        tracks = parse_top_tracks(payload, limit)
+        logger.info("Top de '%s': %d canciones", artist.name, len(tracks))
+        return tracks
+
     def fetch_artist(self, artist_name: str) -> ArtistData:
         """Recupera las metricas reales y actuales de un artista."""
         logger.info("Consultando la API de Deezer para '%s'", artist_name)
@@ -194,9 +248,15 @@ class PrefetchedDeezerClient(DeezerClient):
     logica de desambiguacion y conversion de la version de consola.
     """
 
-    def __init__(self, payload: dict):
+    def __init__(self, payload: dict, top_payload: dict | None = None):
         super().__init__(sleep_between_retries=False)
         self._payload = payload
+        self._top_payload = top_payload
 
     def _request(self, artist_name: str) -> dict:
         return self._payload
+
+    def fetch_top_tracks(self, artist: ArtistData, limit: int = 10) -> tuple[Track, ...]:
+        if self._top_payload is None:
+            return ()
+        return parse_top_tracks(self._top_payload, limit)

@@ -28,15 +28,22 @@ T = TypeVar("T")
 def normalize(text: str) -> str:
     """Normaliza un nombre para poder compararlo.
 
-    Quita acentos, unifica mayusculas, colapsa espacios y equipara las
-    variantes de la conjuncion ("&" frente a "and"/"y"), que es la
-    diferencia mas comun entre como escribe el usuario y como registra el
-    catalogo a un artista ("Iron & Wine" / "Iron and Wine").
+    Quita acentos, unifica mayusculas, colapsa espacios, ignora la puntuacion
+    y equipara las variantes de la conjuncion ("&" frente a "and"/"y"). Son
+    las diferencias mas comunes entre como escribe el usuario y como registra
+    el catalogo a un artista: "Iron & Wine" / "Iron and Wine",
+    "Tyler The Creator" / "Tyler, The Creator".
     """
     text = unicodedata.normalize("NFKD", str(text))
     text = "".join(ch for ch in text if not unicodedata.combining(ch))
     text = text.casefold().strip()
     text = text.replace("&", " and ").replace(" y ", " and ")
+
+    # La puntuacion es la otra fuente habitual de desajuste: el usuario
+    # escribe "Tyler The Creator" y el catalogo registra "Tyler, The Creator".
+    for ch in ",.;:!?'\u2019\"-_/\\()[]":
+        text = text.replace(ch, " ")
+
     return " ".join(text.split())
 
 

@@ -20,7 +20,7 @@ from folk_analytics.api.base import (
     StreamingAPIError,
     StreamingClient,
 )
-from folk_analytics.api.models import ArtistData
+from folk_analytics.api.models import ArtistData, Track
 from folk_analytics.api.simulated import SimulatedClient
 from folk_analytics.logging_setup import get_logger
 from folk_analytics.reports.console import render_report
@@ -44,6 +44,7 @@ class AnalysisResult:
     alerts: list[Alert]
     history_values: list[float]
     metric: str
+    tracks: tuple[Track, ...] = ()
 
     def to_report(self) -> str:
         """Renderiza este resultado como reporte de consola."""
@@ -55,6 +56,7 @@ class AnalysisResult:
             alerts=self.alerts,
             history_values=self.history_values,
             metric=self.metric,
+            tracks=self.tracks,
         )
 
 
@@ -144,6 +146,8 @@ class FolkAnalyticsAgent:
         trend = analyze_artist_trend(history, self.metric)
 
         # 3. ACTUAR
+        tracks = self._fetch_tracks(snapshot)
+
         alerts = evaluate_alerts(
             artist_name=snapshot.name,
             trend=trend,
@@ -175,6 +179,7 @@ class FolkAnalyticsAgent:
             alerts=alerts,
             history_values=[float(getattr(s, self.metric)) for s in history],
             metric=self.metric,
+            tracks=tracks,
         )
 
     def analyze_many(self, artist_names: list[str]) -> tuple[list[AnalysisResult], list[str]]:
@@ -207,6 +212,21 @@ class FolkAnalyticsAgent:
             len(errors),
         )
         return results, errors
+
+    def _fetch_tracks(self, snapshot: ArtistData) -> tuple[Track, ...]:
+        """Recupera el top de canciones si la fuente lo publica.
+
+        Es informacion complementaria, no parte del analisis: si la fuente no
+        lo ofrece o falla, el reporte se genera igualmente.
+        """
+        fetch = getattr(self.client, "fetch_top_tracks", None)
+        if fetch is None:
+            return ()
+        try:
+            return fetch(snapshot)
+        except StreamingAPIError as exc:
+            logger.warning("No se pudo recuperar el top de canciones: %s", exc)
+            return ()
 
     # -- Reconstruccion de historico -----------------------------------------
 

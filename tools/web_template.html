@@ -167,6 +167,22 @@
   .ac div{padding:8px 11px; font-size:13px; cursor:pointer; font-family:var(--mono)}
   .ac div:hover, .ac div.sel{background:var(--accent); color:#191919}
 
+  /* ---------- Top de canciones ---------- */
+  .tracks table{width:100%}
+  .tracks td{padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:middle}
+  .tracks .num{width:34px; color:var(--dim); font-family:var(--mono); font-size:12px}
+  .tracks .ttl{font-weight:550; font-size:13.5px}
+  .tracks .alb{color:var(--muted); font-size:12px}
+  .tracks .dur{text-align:right; color:var(--dim); font-family:var(--mono); font-size:12px; width:52px}
+  .tracks .play{width:38px; text-align:center}
+  .playbtn{
+    background:var(--panel-2); border:1px solid var(--border); color:var(--accent);
+    width:26px; height:26px; border-radius:50%; padding:0; font-size:11px; line-height:1;
+    display:inline-flex; align-items:center; justify-content:center;
+  }
+  .playbtn:hover{border-color:var(--accent)}
+  .playbtn.on{background:var(--accent); color:#191919}
+
   footer{padding:34px 0 46px; color:var(--dim); font-size:13px}
   .note{font-size:13px; color:var(--muted); background:var(--panel); border-left:2px solid var(--accent);
         padding:12px 16px; border-radius:0 7px 7px 0; margin-top:16px}
@@ -280,6 +296,15 @@
         <span class="term-title" id="term-title">folk_analytics — salida del agente</span>
       </div>
       <pre class="term" id="term">Cargando el intérprete de Python…</pre>
+    </div>
+
+    <div class="panel tracks hide" id="tracks-panel" style="margin-bottom:16px">
+      <h3 style="margin-bottom:4px">Top 10 canciones</h3>
+      <p class="sub" style="font-size:12.5px; margin-bottom:10px">
+        Ordenadas por el índice de popularidad que publica Deezer, que
+        <b>no es un número de reproducciones</b>. Pulsa ▶ para oír 30 segundos.
+      </p>
+      <table id="tracks-table"></table>
     </div>
 
     <div class="panel chart-box hide" id="chart-panel">
@@ -549,7 +574,7 @@ def _agent(metric):
     return _agents[metric]
 
 
-def _deezer_agent(payload, metric):
+def _deezer_agent(payload, metric, top_payload=None):
     """Agente alimentado con una respuesta de Deezer ya descargada.
 
     El navegador no puede llamar a Deezer directamente porque la API no
@@ -560,7 +585,8 @@ def _deezer_agent(payload, metric):
     from folk_analytics.api.deezer import PrefetchedDeezerClient
 
     return FolkAnalyticsAgent(
-        client=PrefetchedDeezerClient(payload), store=_store, metric=metric
+        client=PrefetchedDeezerClient(payload, top_payload=top_payload),
+        store=_store, metric=metric,
     )
 
 
@@ -595,6 +621,7 @@ def web_catalog():
             "description": a.description,
             "genres": list(a.genres),
             "spotify_id": a.spotify_id,
+            "deezer_id": a.deezer_id,
         }
         for a in load_catalog()
     ])
@@ -713,12 +740,12 @@ def web_analyze(name, metric):
     })
 
 
-def web_analyze_deezer(name, payload_json, metric):
+def web_analyze_deezer(name, payload_json, metric, top_json="null"):
     """Analiza un artista real a partir de la respuesta de Deezer."""
     _new_logs()
     try:
         payload = json.loads(payload_json)
-        agent = _deezer_agent(payload, metric)
+        agent = _deezer_agent(payload, metric, top_payload=json.loads(top_json))
         result = agent.analyze(name)
     except InvalidInputError as exc:
         return json.dumps({"ok": False, "kind": "input",
@@ -751,6 +778,7 @@ def web_analyze_deezer(name, payload_json, metric):
             "available": result.snapshot.is_available(metric),
         },
         "alerts": [{"level": a.level.value, "message": a.message} for a in result.alerts],
+        "tracks": [t.to_dict() for t in result.tracks],
     })
 
 
@@ -820,6 +848,7 @@ function write(text, {append=false} = {}){
 }
 
 function busy(state){
+  if(state) stopPreview();
   ["run","demo","reset"].forEach(id => $(id).disabled = state);
   $("term-title").textContent = state
     ? "folk_analytics — ejecutando…"
@@ -895,6 +924,58 @@ function renderChart(labels, values, artist, metric){
       },
     },
   });
+}
+
+/* ═══════════════════════ Top de canciones ═══════════════════════ */
+let audio = null;      // un solo reproductor: evita solapar previews
+let playing = null;
+
+function stopPreview(){
+  if(audio){ audio.pause(); audio.currentTime = 0; }
+  document.querySelectorAll(".playbtn.on").forEach(b => {
+    b.classList.remove("on"); b.textContent = "\u25B6";
+  });
+  playing = null;
+}
+
+function togglePreview(url, button){
+  if(playing === url){ stopPreview(); return; }
+  stopPreview();
+
+  audio = audio || new Audio();
+  audio.src = url;
+  audio.play().then(() => {
+    playing = url;
+    button.classList.add("on");
+    button.textContent = "\u25A0";
+  }).catch(() => {
+    button.title = "El navegador bloqueó la reproducción";
+  });
+  audio.onended = stopPreview;
+}
+
+function renderTracks(tracks){
+  const panel = $("tracks-panel");
+  if(!tracks || !tracks.length){ panel.classList.add("hide"); return; }
+
+  $("tracks-table").innerHTML = tracks.map((t, i) => `
+    <tr>
+      <td class="num">${t.position}</td>
+      <td class="play">${t.preview_url
+        ? `<button class="playbtn" data-i="${i}" title="Escuchar 30 s">&#9654;</button>`
+        : ""}</td>
+      <td>
+        <div class="ttl">${esc(t.title)}</div>
+        ${t.album ? `<div class="alb">${esc(t.album)}</div>` : ""}
+      </td>
+      <td class="dur">${esc(t.duration)}</td>
+    </tr>`).join("");
+
+  $("tracks-table").querySelectorAll(".playbtn").forEach(button => {
+    button.onclick = () => togglePreview(tracks[Number(button.dataset.i)].preview_url, button);
+  });
+
+  panel.classList.remove("hide");
 }
 
 /* ═══════════════════════ Deezer via JSONP ═══════════════════════ */
@@ -982,11 +1063,28 @@ async function analyze(){
 
     if(source === "deezer"){
       write("  Consultando la API pública de Deezer…\n", {append:true});
-      const url  = `${DEEZER_SEARCH}?q=${encodeURIComponent(name)}&limit=10`;
-      const raw  = await jsonp(url);
+      const raw = await jsonp(`${DEEZER_SEARCH}?q=${encodeURIComponent(name)}&limit=10`);
+
+      // El top es informacion complementaria: si falla, el analisis continua.
+      let top = null;
+      const best = (raw && raw.data && raw.data[0]) ? raw : null;
+      if(best){
+        try{
+          const artist = byName.get(name.trim().toLowerCase());
+          const id = artist && artist.deezer_id
+            ? artist.deezer_id
+            : (raw.data.find(a => a.name.toLowerCase() === name.trim().toLowerCase())
+               || raw.data[0]).id;
+          top = await jsonp(`https://api.deezer.com/artist/${id}/top?limit=10`);
+        }catch(err){
+          write(`  (no se pudo obtener el top de canciones: ${err.message})\n`, {append:true});
+        }
+      }
+
       data = JSON.parse(await py.runPythonAsync(
         `web_analyze_deezer(${JSON.stringify(name)}, ` +
-        `${JSON.stringify(JSON.stringify(raw))}, ${JSON.stringify(metric)})`
+        `${JSON.stringify(JSON.stringify(raw))}, ${JSON.stringify(metric)}, ` +
+        `${JSON.stringify(JSON.stringify(top))})`
       ));
     }else{
       data = JSON.parse(await py.runPythonAsync(
@@ -998,6 +1096,7 @@ async function analyze(){
       write(data.logs + `\n[ERROR] ${data.error}\n`, {append:true});
       $("kpis").innerHTML = "";
       $("subject").classList.add("hide");
+      $("tracks-panel").classList.add("hide");
       $("chart-panel").classList.add("hide");
       return;
     }
@@ -1005,6 +1104,7 @@ async function analyze(){
     write(data.logs + data.report, {append:true});
     renderSubject(data.artist);
     renderKpis(data.kpi, data.alerts);
+    renderTracks(data.tracks);
 
     if(data.values.length >= 2){
       renderChart(data.labels, data.values, data.artist, data.metric);
@@ -1016,6 +1116,7 @@ async function analyze(){
     write(`\n[ERROR] ${err.message || err}\n`, {append:true});
     $("kpis").innerHTML = "";
     $("subject").classList.add("hide");
+    $("tracks-panel").classList.add("hide");
     $("chart-panel").classList.add("hide");
   }finally{
     busy(false);
@@ -1291,6 +1392,7 @@ async function demo(){
     write(data.logs + data.output, {append:true});
     $("kpis").innerHTML = "";
     $("subject").classList.add("hide");
+    $("tracks-panel").classList.add("hide");
     $("chart-panel").classList.add("hide");
   }catch(err){
     write(`\n[ERROR] ${err}\n`, {append:true});

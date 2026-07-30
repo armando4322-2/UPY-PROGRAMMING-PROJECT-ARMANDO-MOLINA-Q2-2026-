@@ -90,11 +90,16 @@ class TestSuggest:
 
 class TestCatalogoReal:
     def test_el_catalogo_del_repositorio_esta_completo(self):
-        """Comprueba el archivo versionado: 26 artistas, todos con foto."""
+        """Comprueba el archivo versionado.
+
+        Sin foto no se puede pintar la tarjeta, y sin identificador de Deezer
+        el artista no puede analizarse ni entrar en la recoleccion diaria: son
+        los dos campos sin los cuales la entrada no sirve de nada.
+        """
         from folk_analytics.api.artists import load_catalog
 
         catalog = load_catalog()
-        assert len(catalog) == 26
+        assert len(catalog) >= 50
         assert all(a.image for a in catalog), "hay artistas sin foto"
         assert all(a.deezer_id for a in catalog), "hay artistas sin id de Deezer"
 

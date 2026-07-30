@@ -10,7 +10,7 @@ from __future__ import annotations
 from folk_analytics.analytics.alerts import Alert, AlertLevel
 from folk_analytics.analytics.metrics import MetricsSummary
 from folk_analytics.analytics.trends import TrendDirection, TrendResult
-from folk_analytics.api.models import ArtistData
+from folk_analytics.api.models import ArtistData, Track
 from folk_analytics.logging_setup import CONSOLE_UNICODE
 
 WIDTH = 62
@@ -96,6 +96,7 @@ def render_report(
     alerts: list[Alert],
     history_values: list[float] | None = None,
     metric: str = "followers",
+    tracks: tuple[Track, ...] = (),
 ) -> str:
     """Construye el reporte completo de un artista como texto."""
     lines: list[str] = []
@@ -152,6 +153,17 @@ def render_report(
         for alert in alerts:
             mark = ALERT_MARKS[alert.level]
             lines.append(f"  {mark} {alert.message}")
+
+    if tracks:
+        lines.append(_line(LIGHT))
+        lines.append(f"  TOP {len(tracks)} CANCIONES")
+        lines.append(f"  {'#':<3}{'TITULO':<34}{'ALBUM':<24}{'DURA':>6}")
+        for track in tracks:
+            title = track.title[:32] + ("…" if len(track.title) > 32 else "")
+            album = track.album[:22] + ("…" if len(track.album) > 22 else "")
+            lines.append(f"  {track.position:<3}{title:<34}{album:<24}{track.duration:>6}")
+        lines.append("  (ordenadas por el indice de popularidad de la fuente,")
+        lines.append("   que no es un numero de reproducciones)")
 
     lines.append(_line(HEAVY))
     lines.append("")
