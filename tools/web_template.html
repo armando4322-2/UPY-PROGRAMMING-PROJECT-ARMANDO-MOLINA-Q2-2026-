@@ -158,7 +158,7 @@
     <div class="badges">
       <span class="badge">Autor <b>Armando Karin Molina Marrufo</b></span>
       <span class="badge">Versión <b id="b-version">—</b></span>
-      <span class="badge ok">85 tests</span>
+      <span class="badge ok"><b id="b-tests">—</b> tests</span>
       <span class="badge">Python <b id="b-python">—</b></span>
       <span class="badge"><a href="https://github.com/armando4322-2/UPY-PROGRAMMING-PROJECT-ARMANDO-MOLINA-Q2-2026-">Repositorio ↗</a></span>
     </div>
@@ -391,10 +391,10 @@ def _new_logs(max_lines=60):
     fresh = text[_log_pos[0]:]
     _log_pos[0] = len(text)
 
-    lines = fresh.splitlines()
+    lines = [ln for ln in fresh.splitlines() if "[DEBUG" not in ln]
     if len(lines) > max_lines:
         hidden = len(lines) - max_lines
-        lines = lines[:max_lines] + [f"  … {hidden} lineas mas en logs/app.log"]
+        lines = lines[:max_lines] + [f"  … {hidden} lineas mas (nivel completo en logs/app.log)"]
     return "\n".join(lines) + ("\n" if lines else "")
 
 
@@ -697,6 +697,7 @@ async function boot(){
 
     $("b-version").textContent = info.version;
     $("b-python").textContent  = info.python;
+    $("b-tests").textContent   = TEST_COUNT;
     $("c-window").textContent  = info.config.window + " días";
     $("c-min").textContent     = info.config.min_points + " puntos";
     $("c-thr").textContent     = "±" + info.config.threshold + "%";

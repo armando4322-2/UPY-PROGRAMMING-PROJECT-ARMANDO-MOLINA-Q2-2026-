@@ -25,6 +25,7 @@ TEMPLATE = PROJECT_ROOT / "tools" / "web_template.html"
 OUTPUT = PROJECT_ROOT / "docs" / "index.html"
 
 PLACEHOLDER = "/*__PYTHON_SOURCES__*/"
+TESTS_DIR = PROJECT_ROOT / "tests"
 
 # Modulos que no tienen sentido dentro del navegador.
 EXCLUDED = {"__main__.py", "spotify.py"}
@@ -46,6 +47,23 @@ def collect_sources() -> dict[str, str]:
     return sources
 
 
+def count_tests() -> int:
+    """Cuenta las funciones de test declaradas en tests/.
+
+    Evita que la cifra que muestra la web se escriba a mano y quede obsoleta
+    en cuanto se anada un test.
+    """
+    import ast
+
+    total = 0
+    for path in TESTS_DIR.glob("test_*.py"):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
+                total += 1
+    return total
+
+
 def build() -> Path:
     """Genera docs/index.html a partir de la plantilla."""
     if not TEMPLATE.exists():
@@ -60,7 +78,12 @@ def build() -> Path:
     if PLACEHOLDER not in html:
         raise SystemExit(f"La plantilla no contiene el marcador {PLACEHOLDER}")
 
-    html = html.replace(PLACEHOLDER, f"const PYTHON_SOURCES = {payload};")
+    tests = count_tests()
+    html = html.replace(
+        PLACEHOLDER,
+        f"const PYTHON_SOURCES = {payload};\n"
+        f"const TEST_COUNT = {tests};",
+    )
 
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(html, encoding="utf-8")
@@ -70,6 +93,7 @@ def build() -> Path:
     for name in sources:
         print(f"    - {name}")
     print(f"  Lineas de Python   : {total_lines:,}")
+    print(f"  Tests contados     : {tests}")
     print(f"  Generado           : {OUTPUT.relative_to(PROJECT_ROOT)}")
     print(f"  Tamano             : {OUTPUT.stat().st_size / 1024:.1f} KB")
     return OUTPUT
