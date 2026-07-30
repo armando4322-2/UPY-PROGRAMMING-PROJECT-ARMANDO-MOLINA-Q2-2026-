@@ -7,8 +7,8 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:08+00:00",
-      "albums": 68,
+      "captured_at": "2026-07-30T10:02:43+00:00",
+      "albums": 67,
       "unavailable_metrics": [
         "monthly_listeners",
         "popularity"
@@ -19,11 +19,11 @@
     {
       "artist_id": "DZ-259",
       "name": "Michael Jackson",
-      "followers": 12980682,
+      "followers": 12980686,
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:09+00:00",
+      "captured_at": "2026-07-30T10:02:43+00:00",
       "albums": 38,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -39,7 +39,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:09+00:00",
+      "captured_at": "2026-07-30T10:02:44+00:00",
       "albums": 54,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -55,7 +55,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:10+00:00",
+      "captured_at": "2026-07-30T10:02:45+00:00",
       "albums": 56,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -71,7 +71,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:11+00:00",
+      "captured_at": "2026-07-30T10:02:46+00:00",
       "albums": 164,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -87,7 +87,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:11+00:00",
+      "captured_at": "2026-07-30T10:02:46+00:00",
       "albums": 31,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -99,11 +99,11 @@
     {
       "artist_id": "DZ-10583405",
       "name": "Bad Bunny",
-      "followers": 7910315,
+      "followers": 7910318,
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:12+00:00",
+      "captured_at": "2026-07-30T10:02:47+00:00",
       "albums": 88,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -119,7 +119,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:13+00:00",
+      "captured_at": "2026-07-30T10:02:48+00:00",
       "albums": 61,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -135,7 +135,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:13+00:00",
+      "captured_at": "2026-07-30T10:02:49+00:00",
       "albums": 148,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -151,7 +151,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:14+00:00",
+      "captured_at": "2026-07-30T10:02:49+00:00",
       "albums": 121,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -163,11 +163,11 @@
     {
       "artist_id": "DZ-203754947",
       "name": "El De Las R's",
-      "followers": 3362,
+      "followers": 3363,
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:15+00:00",
+      "captured_at": "2026-07-30T10:02:50+00:00",
       "albums": 69,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -183,8 +183,8 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:16+00:00",
-      "albums": 80,
+      "captured_at": "2026-07-30T10:02:51+00:00",
+      "albums": 75,
       "unavailable_metrics": [
         "monthly_listeners",
         "popularity"
@@ -199,7 +199,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:16+00:00",
+      "captured_at": "2026-07-30T10:02:51+00:00",
       "albums": 73,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -211,12 +211,12 @@
     {
       "artist_id": "DZ-1020109",
       "name": "Black Eyed Peas",
-      "followers": 6088833,
+      "followers": 6088834,
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:17+00:00",
-      "albums": 65,
+      "captured_at": "2026-07-30T10:02:52+00:00",
+      "albums": 60,
       "unavailable_metrics": [
         "monthly_listeners",
         "popularity"
@@ -231,7 +231,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:17+00:00",
+      "captured_at": "2026-07-30T10:02:53+00:00",
       "albums": 20,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -247,7 +247,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:18+00:00",
+      "captured_at": "2026-07-30T10:02:53+00:00",
       "albums": 67,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -259,12 +259,12 @@
     {
       "artist_id": "DZ-4050205",
       "name": "The Weeknd",
-      "followers": 14588821,
+      "followers": 14588824,
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:19+00:00",
-      "albums": 91,
+      "captured_at": "2026-07-30T10:02:54+00:00",
+      "albums": 90,
       "unavailable_metrics": [
         "monthly_listeners",
         "popularity"
@@ -279,7 +279,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:19+00:00",
+      "captured_at": "2026-07-30T10:02:55+00:00",
       "albums": 56,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -295,8 +295,8 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:20+00:00",
-      "albums": 35,
+      "captured_at": "2026-07-30T10:02:55+00:00",
+      "albums": 36,
       "unavailable_metrics": [
         "monthly_listeners",
         "popularity"
@@ -307,12 +307,12 @@
     {
       "artist_id": "DZ-429675",
       "name": "Bruno Mars",
-      "followers": 12706617,
+      "followers": 12706620,
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:21+00:00",
-      "albums": 38,
+      "captured_at": "2026-07-30T10:02:56+00:00",
+      "albums": 37,
       "unavailable_metrics": [
         "monthly_listeners",
         "popularity"
@@ -327,7 +327,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:21+00:00",
+      "captured_at": "2026-07-30T10:02:57+00:00",
       "albums": 97,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -343,8 +343,8 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:22+00:00",
-      "albums": 39,
+      "captured_at": "2026-07-30T10:02:57+00:00",
+      "albums": 49,
       "unavailable_metrics": [
         "monthly_listeners",
         "popularity"
@@ -355,12 +355,12 @@
     {
       "artist_id": "DZ-246791",
       "name": "Drake",
-      "followers": 24039242,
+      "followers": 24039243,
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:23+00:00",
-      "albums": 77,
+      "captured_at": "2026-07-30T10:02:58+00:00",
+      "albums": 78,
       "unavailable_metrics": [
         "monthly_listeners",
         "popularity"
@@ -375,7 +375,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:23+00:00",
+      "captured_at": "2026-07-30T10:02:59+00:00",
       "albums": 13,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -391,7 +391,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:24+00:00",
+      "captured_at": "2026-07-30T10:03:00+00:00",
       "albums": 21,
       "unavailable_metrics": [
         "monthly_listeners",
@@ -407,7 +407,7 @@
       "monthly_listeners": 0,
       "popularity": 0,
       "source": "deezer",
-      "captured_at": "2026-07-30T10:00:25+00:00",
+      "captured_at": "2026-07-30T10:03:00+00:00",
       "albums": 13,
       "unavailable_metrics": [
         "monthly_listeners",
