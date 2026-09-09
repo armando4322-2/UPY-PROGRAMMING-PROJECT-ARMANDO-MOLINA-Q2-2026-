@@ -573,6 +573,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-5284515",
+      "name": "Mon Laferte",
+      "followers": 708074,
+      "monthly_listeners": 0,
+      "popularity": 53,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:24+00:00",
+      "albums": 67,
+      "top_track_rank": 530855,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-259": [
@@ -1149,6 +1163,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-259",
+      "name": "Michael Jackson",
+      "followers": 13100929,
+      "monthly_listeners": 0,
+      "popularity": 91,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:25+00:00",
+      "albums": 38,
+      "top_track_rank": 905015,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-216346095": [
@@ -1720,6 +1748,20 @@
       "popularity": 62,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:30+00:00",
+      "albums": 54,
+      "top_track_rank": 620945,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-216346095",
+      "name": "Tito Double P",
+      "followers": 161592,
+      "monthly_listeners": 0,
+      "popularity": 62,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:25+00:00",
       "albums": 54,
       "top_track_rank": 620945,
       "unavailable_metrics": [
@@ -2301,6 +2343,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-80365122",
+      "name": "Peso Pluma",
+      "followers": 506010,
+      "monthly_listeners": 0,
+      "popularity": 67,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:26+00:00",
+      "albums": 56,
+      "top_track_rank": 672054,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-11289472": [
@@ -2872,6 +2928,20 @@
       "popularity": 73,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:32+00:00",
+      "albums": 165,
+      "top_track_rank": 730627,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-11289472",
+      "name": "Rauw Alejandro",
+      "followers": 2134410,
+      "monthly_listeners": 0,
+      "popularity": 73,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:26+00:00",
       "albums": 165,
       "top_track_rank": 730627,
       "unavailable_metrics": [
@@ -3453,6 +3523,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-5078097",
+      "name": "Joji",
+      "followers": 562731,
+      "monthly_listeners": 0,
+      "popularity": 65,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:27+00:00",
+      "albums": 31,
+      "top_track_rank": 645345,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-10583405": [
@@ -4024,6 +4108,20 @@
       "popularity": 93,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:33+00:00",
+      "albums": 88,
+      "top_track_rank": 933283,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-10583405",
+      "name": "Bad Bunny",
+      "followers": 7982763,
+      "monthly_listeners": 0,
+      "popularity": 93,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:28+00:00",
       "albums": 88,
       "top_track_rank": 933283,
       "unavailable_metrics": [
@@ -4605,6 +4703,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-54047652",
+      "name": "Junior H",
+      "followers": 765719,
+      "monthly_listeners": 0,
+      "popularity": 59,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:28+00:00",
+      "albums": 61,
+      "top_track_rank": 588896,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-1060794": [
@@ -5181,6 +5293,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-1060794",
+      "name": "ZELL",
+      "followers": 1778,
+      "monthly_listeners": 0,
+      "popularity": 17,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:29+00:00",
+      "albums": 152,
+      "top_track_rank": 169808,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-13916083": [
@@ -5752,6 +5878,20 @@
       "popularity": 68,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:36+00:00",
+      "albums": 121,
+      "top_track_rank": 677582,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-13916083",
+      "name": "Fuerza Regida",
+      "followers": 740656,
+      "monthly_listeners": 0,
+      "popularity": 68,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:30+00:00",
       "albums": 121,
       "top_track_rank": 677582,
       "unavailable_metrics": [
@@ -6333,6 +6473,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-203754947",
+      "name": "El De Las R's",
+      "followers": 4118,
+      "monthly_listeners": 0,
+      "popularity": 56,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:31+00:00",
+      "albums": 71,
+      "top_track_rank": 564271,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-412": [
@@ -6904,6 +7058,20 @@
       "popularity": 64,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:37+00:00",
+      "albums": 133,
+      "top_track_rank": 644632,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-412",
+      "name": "Queen",
+      "followers": 12795783,
+      "monthly_listeners": 0,
+      "popularity": 64,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:32+00:00",
       "albums": 133,
       "top_track_rank": 644632,
       "unavailable_metrics": [
@@ -7485,6 +7653,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-11554747",
+      "name": "Young Cister",
+      "followers": 15958,
+      "monthly_listeners": 0,
+      "popularity": 31,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:32+00:00",
+      "albums": 73,
+      "top_track_rank": 314132,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-1020109": [
@@ -8056,6 +8238,20 @@
       "popularity": 71,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:39+00:00",
+      "albums": 60,
+      "top_track_rank": 707443,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-1020109",
+      "name": "Black Eyed Peas",
+      "followers": 6101535,
+      "monthly_listeners": 0,
+      "popularity": 71,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:33+00:00",
       "albums": 60,
       "top_track_rank": 707443,
       "unavailable_metrics": [
@@ -8637,6 +8833,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-106990182",
+      "name": "Ivan Cornejo",
+      "followers": 53986,
+      "monthly_listeners": 0,
+      "popularity": 44,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:34+00:00",
+      "albums": 20,
+      "top_track_rank": 435621,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-120626712": [
@@ -9208,6 +9418,20 @@
       "popularity": 53,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:40+00:00",
+      "albums": 69,
+      "top_track_rank": 529117,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-120626712",
+      "name": "Calle 24",
+      "followers": 78330,
+      "monthly_listeners": 0,
+      "popularity": 53,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:35+00:00",
       "albums": 69,
       "top_track_rank": 529117,
       "unavailable_metrics": [
@@ -9789,6 +10013,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-4050205",
+      "name": "The Weeknd",
+      "followers": 14666961,
+      "monthly_listeners": 0,
+      "popularity": 93,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:35+00:00",
+      "albums": 90,
+      "top_track_rank": 930957,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-12317948": [
@@ -10362,6 +10600,20 @@
       "captured_at": "2026-09-08T11:02:42+00:00",
       "albums": 57,
       "top_track_rank": 190077,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-12317948",
+      "name": "Rojuu",
+      "followers": 13422,
+      "monthly_listeners": 0,
+      "popularity": 19,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:36+00:00",
+      "albums": 57,
+      "top_track_rank": 189266,
       "unavailable_metrics": [
         "monthly_listeners"
       ]
@@ -10941,6 +11193,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-10275016",
+      "name": "kensuke ushio",
+      "followers": 6104,
+      "monthly_listeners": 0,
+      "popularity": 29,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:36+00:00",
+      "albums": 36,
+      "top_track_rank": 285667,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-429675": [
@@ -11517,6 +11783,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-429675",
+      "name": "Bruno Mars",
+      "followers": 12770062,
+      "monthly_listeners": 0,
+      "popularity": 89,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:37+00:00",
+      "albums": 37,
+      "top_track_rank": 889770,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-15304117": [
@@ -12088,6 +12368,20 @@
       "popularity": 58,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:44+00:00",
+      "albums": 100,
+      "top_track_rank": 578020,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-15304117",
+      "name": "Natanael Cano",
+      "followers": 1147798,
+      "monthly_listeners": 0,
+      "popularity": 58,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:38+00:00",
       "albums": 100,
       "top_track_rank": 578020,
       "unavailable_metrics": [
@@ -12669,6 +12963,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-6123",
+      "name": "Luis Miguel",
+      "followers": 1931427,
+      "monthly_listeners": 0,
+      "popularity": 53,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:38+00:00",
+      "albums": 49,
+      "top_track_rank": 534604,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-246791": [
@@ -13240,6 +13548,20 @@
       "popularity": 83,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:46+00:00",
+      "albums": 79,
+      "top_track_rank": 832991,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-246791",
+      "name": "Drake",
+      "followers": 24075346,
+      "monthly_listeners": 0,
+      "popularity": 83,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:39+00:00",
       "albums": 79,
       "top_track_rank": 832991,
       "unavailable_metrics": [
@@ -13821,6 +14143,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-9695086",
+      "name": "Jósean Log",
+      "followers": 106034,
+      "monthly_listeners": 0,
+      "popularity": 45,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:40+00:00",
+      "albums": 13,
+      "top_track_rank": 454094,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-130977392": [
@@ -14397,6 +14733,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-130977392",
+      "name": "Chuyin",
+      "followers": 16166,
+      "monthly_listeners": 0,
+      "popularity": 45,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:40+00:00",
+      "albums": 21,
+      "top_track_rank": 449795,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-178008437": [
@@ -14968,6 +15318,20 @@
       "popularity": 64,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:48+00:00",
+      "albums": 13,
+      "top_track_rank": 644461,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-178008437",
+      "name": "NewJeans",
+      "followers": 349398,
+      "monthly_listeners": 0,
+      "popularity": 64,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:41+00:00",
       "albums": 13,
       "top_track_rank": 644461,
       "unavailable_metrics": [
@@ -15549,6 +15913,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-310260",
+      "name": "Stromae",
+      "followers": 3479097,
+      "monthly_listeners": 0,
+      "popularity": 66,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:41+00:00",
+      "albums": 18,
+      "top_track_rank": 657380,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-5382747": [
@@ -16120,6 +16498,20 @@
       "popularity": 69,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:49+00:00",
+      "albums": 37,
+      "top_track_rank": 687965,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-5382747",
+      "name": "Pomme",
+      "followers": 456699,
+      "monthly_listeners": 0,
+      "popularity": 69,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:42+00:00",
       "albums": 37,
       "top_track_rank": 687965,
       "unavailable_metrics": [
@@ -16701,6 +17093,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-71835",
+      "name": "José José",
+      "followers": 1228093,
+      "monthly_listeners": 0,
+      "popularity": 50,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:43+00:00",
+      "albums": 68,
+      "top_track_rank": 504825,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-4649104": [
@@ -17277,6 +17683,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-4649104",
+      "name": "Tainy",
+      "followers": 366451,
+      "monthly_listeners": 0,
+      "popularity": 65,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:44+00:00",
+      "albums": 49,
+      "top_track_rank": 646778,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-134790": [
@@ -17848,6 +18268,20 @@
       "popularity": 89,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:52+00:00",
+      "albums": 39,
+      "top_track_rank": 890515,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-134790",
+      "name": "Tame Impala",
+      "followers": 1132403,
+      "monthly_listeners": 0,
+      "popularity": 89,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:44+00:00",
       "albums": 39,
       "top_track_rank": 890515,
       "unavailable_metrics": [
@@ -18429,6 +18863,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-161553",
+      "name": "TWICE",
+      "followers": 1353188,
+      "monthly_listeners": 0,
+      "popularity": 63,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:45+00:00",
+      "albums": 91,
+      "top_track_rank": 626196,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-180": [
@@ -19000,6 +19448,20 @@
       "popularity": 85,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:53+00:00",
+      "albums": 30,
+      "top_track_rank": 848057,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-180",
+      "name": "ABBA",
+      "followers": 3181785,
+      "monthly_listeners": 0,
+      "popularity": 85,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:46+00:00",
       "albums": 30,
       "top_track_rank": 848057,
       "unavailable_metrics": [
@@ -19581,6 +20043,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-5620251",
+      "name": "C. Tangana",
+      "followers": 183752,
+      "monthly_listeners": 0,
+      "popularity": 53,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:46+00:00",
+      "albums": 57,
+      "top_track_rank": 525895,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-4495513": [
@@ -20152,6 +20628,20 @@
       "popularity": 78,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:55+00:00",
+      "albums": 64,
+      "top_track_rank": 777161,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-4495513",
+      "name": "Travis Scott",
+      "followers": 3135333,
+      "monthly_listeners": 0,
+      "popularity": 78,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:47+00:00",
       "albums": 64,
       "top_track_rank": 777161,
       "unavailable_metrics": [
@@ -20733,6 +21223,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-3214",
+      "name": "Caifanes",
+      "followers": 857206,
+      "monthly_listeners": 0,
+      "popularity": 55,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:48+00:00",
+      "albums": 11,
+      "top_track_rank": 553075,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-1272674": [
@@ -21304,6 +21808,20 @@
       "popularity": 68,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:56+00:00",
+      "albums": 29,
+      "top_track_rank": 681190,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-1272674",
+      "name": "Romeo Santos",
+      "followers": 3900952,
+      "monthly_listeners": 0,
+      "popularity": 68,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:48+00:00",
       "albums": 29,
       "top_track_rank": 681190,
       "unavailable_metrics": [
@@ -21885,6 +22403,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-4479",
+      "name": "Alejandro Sanz",
+      "followers": 1414545,
+      "monthly_listeners": 0,
+      "popularity": 54,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:49+00:00",
+      "albums": 90,
+      "top_track_rank": 541624,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-7543848": [
@@ -22456,6 +22988,20 @@
       "popularity": 76,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:58+00:00",
+      "albums": 39,
+      "top_track_rank": 758856,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-7543848",
+      "name": "Post Malone",
+      "followers": 4198492,
+      "monthly_listeners": 0,
+      "popularity": 76,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:49+00:00",
       "albums": 39,
       "top_track_rank": 758856,
       "unavailable_metrics": [
@@ -23037,6 +23583,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-1194083",
+      "name": "Tyler, The Creator",
+      "followers": 1373409,
+      "monthly_listeners": 0,
+      "popularity": 69,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:50+00:00",
+      "albums": 31,
+      "top_track_rank": 693022,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-10580067": [
@@ -23608,6 +24168,20 @@
       "popularity": 50,
       "source": "deezer",
       "captured_at": "2026-09-08T11:02:59+00:00",
+      "albums": 100,
+      "top_track_rank": 495691,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-10580067",
+      "name": "Rels B",
+      "followers": 944589,
+      "monthly_listeners": 0,
+      "popularity": 50,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:51+00:00",
       "albums": 100,
       "top_track_rank": 495691,
       "unavailable_metrics": [
@@ -24189,6 +24763,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-9635624",
+      "name": "Billie Eilish",
+      "followers": 9243687,
+      "monthly_listeners": 0,
+      "popularity": 90,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:51+00:00",
+      "albums": 32,
+      "top_track_rank": 897559,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-6853403": [
@@ -24760,6 +25348,20 @@
       "popularity": 67,
       "source": "deezer",
       "captured_at": "2026-09-08T11:03:01+00:00",
+      "albums": 54,
+      "top_track_rank": 667697,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-6853403",
+      "name": "21 Savage",
+      "followers": 1520806,
+      "monthly_listeners": 0,
+      "popularity": 67,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:52+00:00",
       "albums": 54,
       "top_track_rank": 667697,
       "unavailable_metrics": [
@@ -25341,6 +25943,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-10830710",
+      "name": "Miki Matsubara",
+      "followers": 36406,
+      "monthly_listeners": 0,
+      "popularity": 36,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:53+00:00",
+      "albums": 25,
+      "top_track_rank": 358728,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-4552301": [
@@ -25912,6 +26528,20 @@
       "popularity": 44,
       "source": "deezer",
       "captured_at": "2026-09-08T11:03:02+00:00",
+      "albums": 41,
+      "top_track_rank": 442362,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-4552301",
+      "name": "Anri",
+      "followers": 16925,
+      "monthly_listeners": 0,
+      "popularity": 44,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:53+00:00",
       "albums": 41,
       "top_track_rank": 442362,
       "unavailable_metrics": [
@@ -26493,6 +27123,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-54216232",
+      "name": "Dillom",
+      "followers": 63777,
+      "monthly_listeners": 0,
+      "popularity": 26,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:54+00:00",
+      "albums": 37,
+      "top_track_rank": 260532,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-1307319": [
@@ -27064,6 +27708,20 @@
       "popularity": 42,
       "source": "deezer",
       "captured_at": "2026-09-08T11:03:04+00:00",
+      "albums": 48,
+      "top_track_rank": 415535,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-1307319",
+      "name": "Cuco",
+      "followers": 217321,
+      "monthly_listeners": 0,
+      "popularity": 42,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:55+00:00",
       "albums": 48,
       "top_track_rank": 415535,
       "unavailable_metrics": [
@@ -27645,6 +28303,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-617",
+      "name": "Frank Sinatra",
+      "followers": 2482702,
+      "monthly_listeners": 0,
+      "popularity": 66,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:55+00:00",
+      "albums": 89,
+      "top_track_rank": 662551,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-1": [
@@ -28221,6 +28893,20 @@
       "unavailable_metrics": [
         "monthly_listeners"
       ]
+    },
+    {
+      "artist_id": "DZ-1",
+      "name": "The Beatles",
+      "followers": 8119256,
+      "monthly_listeners": 0,
+      "popularity": 79,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:56+00:00",
+      "albums": 47,
+      "top_track_rank": 789568,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
     }
   ],
   "DZ-12246": [
@@ -28792,6 +29478,20 @@
       "popularity": 85,
       "source": "deezer",
       "captured_at": "2026-09-08T11:03:06+00:00",
+      "albums": 118,
+      "top_track_rank": 848710,
+      "unavailable_metrics": [
+        "monthly_listeners"
+      ]
+    },
+    {
+      "artist_id": "DZ-12246",
+      "name": "Taylor Swift",
+      "followers": 12713651,
+      "monthly_listeners": 0,
+      "popularity": 85,
+      "source": "deezer",
+      "captured_at": "2026-09-09T11:07:57+00:00",
       "albums": 118,
       "top_track_rank": 848710,
       "unavailable_metrics": [
